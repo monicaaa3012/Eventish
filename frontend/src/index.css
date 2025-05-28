@@ -1,3 +1,11 @@
+/*
+  The following @tailwind directives require Tailwind CSS to be processed via PostCSS.
+  If you see "Unknown at rule @tailwind", ensure your build tool is configured for Tailwind.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Reset and base styles */
 * {
   box-sizing: border-box;
@@ -97,4 +105,97 @@ body {
   .floating-circle {
     display: none !important;
   }
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+
+/* Modern card hover effects */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Custom nav pills */
+.nav-pills .nav-link {
+  transition: all 0.3s ease;
+  color: #6c757d;
+}
+
+.nav-pills .nav-link:hover {
+  transform: translateY(-1px);
+}
+
+.nav-pills .nav-link.active {
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+/* Table hover effects */
+.table-hover tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+/* Badge animations */
+.badge {
+  transition: all 0.2s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+/* Button hover effects */
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradient text for headings */
+.text-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-warning {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
 }

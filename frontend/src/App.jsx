@@ -1,18 +1,19 @@
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-import UserDashboard from "./pages/dashboards/UserDashboard";
-import VendorDashboard from "./pages/dashboards/VendorDashboard";
-import AdminDashboard from "./pages/dashboards/AdminDashboard";
-import ProtectedRoute from "./routes/ProtectedRoute";
-
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom"
+import Login from "./pages/Auth/Login"
+import Register from "./pages/Auth/Register"
+import UserDashboard from "./pages/dashboards/UserDashboard"
+import AdminDashboard from "./pages/dashboards/AdminDashboard"
+import ProtectedRoute from "./routes/ProtectedRoute"
+import CreateEvent from "./pages/events/CreateEvent"
+import Unauthorized from "./components/Unauthorized"
+import EventDetails from "./components/EventDetails"
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route
           path="/user/dashboard"
           element={
@@ -22,13 +23,14 @@ function App() {
           }
         />
         <Route
-          path="/vendor/dashboard"
+          path="/create-event"
           element={
-            <ProtectedRoute allowedRoles={["vendor"]}>
-              <VendorDashboard />
+            <ProtectedRoute allowedRoles={["user"]}>
+              <CreateEvent />
             </ProtectedRoute>
           }
         />
+        <Route path="/events/:id" element={<EventDetails />} />
         <Route
           path="/admin/dashboard"
           element={
@@ -37,11 +39,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/unauthorized" element={<h1>403 - Unauthorized</h1>} />
-        <Route path="*" element={<Login />} /> {/* fallback */}
+        <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
