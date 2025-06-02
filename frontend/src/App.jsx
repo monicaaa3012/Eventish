@@ -7,6 +7,7 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import CreateEvent from "./pages/events/CreateEvent"
 import Unauthorized from "./components/Unauthorized"
 import EventDetails from "./components/EventDetails"
+import GeneralDashboard from "./pages/dashboards/GeneralDashboard"
 function App() {
   return (
     <Router>
@@ -39,7 +40,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Navigate to="/login" />} />
+        <Route path="/" element={<GeneralDashboard/>}/>
       </Routes>
     </Router>
   )
