@@ -1,24 +1,65 @@
-// src/routes/ProtectedRoute.jsx
-import { Navigate } from "react-router-dom";
+"use client"
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const token = localStorage.getItem("token");
-  const userRole = localStorage.getItem("role");
+import { Navigate, useLocation } from "react-router-dom"
+import { useEffect, useState } from "react"
 
-  // Debug logging (optional)
-  // console.log("Token:", token);
-  // console.log("User role:", userRole);
-  // console.log("Allowed roles:", allowedRoles);
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const location = useLocation()
+  const [isAuthorized, setIsAuthorized] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  if (!token) {
-    return <Navigate to="/login" />;
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("token")
+      const userRole = localStorage.getItem("role")
+
+      console.log("ProtectedRoute check:", {
+        path: location.pathname,
+        token: token ? "exists" : "missing",
+        userRole,
+        allowedRoles,
+        hasValidRole: allowedRoles.includes(userRole),
+      })
+
+      // Check if user is authenticated
+      if (!token) {
+        console.log("No token found, redirecting to login")
+        setIsAuthorized(false)
+        return
+      }
+
+      // Check if user has required role
+      if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+        console.log("Role not allowed:", { userRole, allowedRoles })
+        setIsAuthorized("unauthorized")
+        return
+      }
+
+      console.log("Access granted")
+      setIsAuthorized(true)
+    }
+
+    checkAuth()
+    setIsLoading(false)
+  }, [location.pathname, allowedRoles])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    )
   }
 
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/unauthorized" />;
+  if (isAuthorized === false) {
+    return <Navigate to="/login" replace />
   }
 
-  return children;
-};
+  if (isAuthorized === "unauthorized") {
+    return <Navigate to="/unauthorized" replace />
+  }
 
-export default ProtectedRoute;
+  return children
+}
+
+export default ProtectedRoute

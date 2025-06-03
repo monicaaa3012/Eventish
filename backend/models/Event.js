@@ -5,6 +5,7 @@ const eventSchema = new mongoose.Schema({
   description: String,
   date: { type: Date, required: true },
   location: String,
+    budget: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

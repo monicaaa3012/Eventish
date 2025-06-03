@@ -2,15 +2,16 @@ const Event = require("../models/Event")
 
 exports.createEvent = async (req, res) => {
   try {
-    const { title, description, date, location } = req.body
+    const { title, description, date, location, budget } = req.body
 
-    console.log("Creating event with data:", { title, description, date, location, createdBy: req.user.id })
+    console.log("Creating event with data:", { title, description, date, location, budget, createdBy: req.user.id })
 
     const event = new Event({
       title,
       description,
       date,
       location,
+      budget,
       createdBy: req.user.id,
     })
 
@@ -48,7 +49,7 @@ exports.getUserEvents = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, description, date, location } = req.body
+    const { title, description, date, location, budget } = req.body
 
     const event = await Event.findById(id)
     if (!event) {
@@ -62,7 +63,7 @@ exports.updateEvent = async (req, res) => {
 
     const updatedEvent = await Event.findByIdAndUpdate(
       id,
-      { title, description, date, location },
+      { title, description, date, location, budget },
       { new: true },
     ).populate("createdBy", "name email")
 
@@ -139,8 +140,6 @@ exports.getEventStats = async (req, res) => {
         $limit: 10,
       },
     ])
-
-   
 
     res.json({
       totalEvents,
