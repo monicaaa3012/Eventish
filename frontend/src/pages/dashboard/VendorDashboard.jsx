@@ -62,7 +62,7 @@ const VendorDashboard = () => {
         </svg>
       ),
       color: "from-green-500 to-teal-500",
-      action: () => console.log("Manage Bookings"),
+      action: () => navigate("/bookings"),
     },
     {
       title: "View Analytics",

@@ -61,6 +61,13 @@ const Navbar = () => {
                 Contact
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
               </Link>
+              <Link
+                to="/vendors"
+                className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-indigo-50 relative group"
+              >
+                Vendors
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
             </div>
           </div>
 
@@ -132,6 +139,12 @@ const Navbar = () => {
             className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-lg text-base font-medium transition-all duration-300 hover:bg-indigo-50"
           >
             Contact
+          </Link>
+          <Link
+            to="/vendors"
+            className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-lg text-base font-medium transition-all duration-300 hover:bg-indigo-50"
+          >
+            Vendors
           </Link>
           <Link to="/login" className="btn-eventish block text-center mx-3 mt-4">
             Get Started

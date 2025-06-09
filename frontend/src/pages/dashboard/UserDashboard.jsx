@@ -145,9 +145,9 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg p-6 border border-white/20">
+          <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-2xl p-6 border border-white/20 transition-all duration-500 transform hover:-translate-y-3">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -157,14 +157,22 @@ const UserDashboard = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Find Vendors</h3>
-              <p className="text-gray-600 mb-4">Coming soon</p>
+              <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-pink-600 transition-colors duration-300">
+                Find Vendors
+              </h3>
+              <p className="text-gray-600 mb-4">Browse trusted service providers</p>
+              <button
+                onClick={() => navigate("/vendors")}
+                className="bg-primary-gradient text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
+                Browse Now
+              </button>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg p-6 border border-white/20">
+          <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-2xl p-6 border border-white/20 transition-all duration-500 transform hover:-translate-y-3">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -174,8 +182,16 @@ const UserDashboard = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Bookings</h3>
-              <p className="text-gray-600 mb-4">Coming soon</p>
+              <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors duration-300">
+                My Bookings
+              </h3>
+              <p className="text-gray-600 mb-4">Manage booking requests</p>
+              <button
+                onClick={() => navigate("/bookings")}
+                className="bg-primary-gradient text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
+                View Bookings
+              </button>
             </div>
           </div>
         </div>

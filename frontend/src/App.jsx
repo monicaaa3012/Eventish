@@ -9,7 +9,9 @@ import EventDetails from "./components/EventDetails"
 import GeneralDashboard from "./pages/dashboard/GeneralDashboard"
 import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
-
+import VendorBrowse from "./pages/vendor/VendorBrowse"
+import VendorDetails from "./pages/vendor/VendorDetails"
+import BookingManagement from "./pages/bookings/BookingManagement"
 
 const App = () => {
   return (
@@ -63,12 +65,34 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorBrowse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors/:id"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <BookingManagement />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        
       </div>
     </Router>
   )
