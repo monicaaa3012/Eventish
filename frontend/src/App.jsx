@@ -9,6 +9,8 @@ import EventDetails from "./components/EventDetails"
 import GeneralDashboard from "./pages/dashboard/GeneralDashboard"
 import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
+import VendorBrowse from "./pages/Vendor/VendorBrowse"
+import VendorDetails from "./pages/Vendor/VendorDetails"
 
 
 const App = () => {
@@ -60,6 +62,23 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
                 <EventDetails />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorBrowse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors/:id"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorDetails />
               </ProtectedRoute>
             }
           />
