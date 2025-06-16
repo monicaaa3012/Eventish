@@ -46,7 +46,7 @@ const VendorDashboard = () => {
         </svg>
       ),
       color: "from-blue-500 to-indigo-500",
-      action: () => console.log("Add Service"),
+      action: () => navigate("/addservice"),
     },
     {
       title: "Manage Bookings",

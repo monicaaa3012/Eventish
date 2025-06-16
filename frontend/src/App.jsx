@@ -9,6 +9,7 @@ import EventDetails from "./components/EventDetails"
 import GeneralDashboard from "./pages/dashboard/GeneralDashboard"
 import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
+import AddService from "./pages/AddService/AddService"
 
 
 const App = () => {
@@ -63,6 +64,13 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+             path="/addservice" 
+             element={
+             <ProtectedRoute allowedRoles={["vendor"]}>
+             <AddService/>
+            </ProtectedRoute>}
+             />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
