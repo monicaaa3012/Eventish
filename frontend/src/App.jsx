@@ -11,6 +11,7 @@ import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
 import VendorBrowse from "./pages/Vendor/VendorBrowse"
 import VendorDetails from "./pages/Vendor/VendorDetails"
+import BookingManagement from "./pages/bookings/BookingManagement"
 
 
 const App = () => {
@@ -82,7 +83,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
+<Route
+            path="/bookings"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <BookingManagement />
+              </ProtectedRoute>
+            }
+          />
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
