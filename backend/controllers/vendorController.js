@@ -3,9 +3,9 @@ const User = require("../models/User")
 
 exports.createVendorProfile = async (req, res) => {
   try {
-    const { businessName, description, services, location, priceRange, contactInfo } = req.body
+    const { businessName, companyName, bio, profileImage, description, services, location, priceRange, contactInfo } =
+      req.body
 
-    // Check if vendor profile already exists
     const existingVendor = await Vendor.findOne({ userId: req.user.id })
     if (existingVendor) {
       return res.status(400).json({ message: "Vendor profile already exists" })
@@ -14,6 +14,9 @@ exports.createVendorProfile = async (req, res) => {
     const vendor = new Vendor({
       userId: req.user.id,
       businessName,
+      companyName,
+      bio,
+      profileImage,
       description,
       services,
       location,
@@ -42,7 +45,6 @@ exports.getAllVendors = async (req, res) => {
       sortOrder = "desc",
     } = req.query
 
-    // Build filter object
     const filter = {}
 
     if (service) {
@@ -67,7 +69,6 @@ exports.getAllVendors = async (req, res) => {
       filter.rating = { $gte: Number.parseFloat(rating) }
     }
 
-    // Build sort object
     const sort = {}
     sort[sortBy] = sortOrder === "desc" ? -1 : 1
 
@@ -82,7 +83,7 @@ exports.getAllVendors = async (req, res) => {
     res.json({
       vendors,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: Number.parseInt(page),
       total,
     })
   } catch (error) {
@@ -102,13 +103,57 @@ exports.getVendorById = async (req, res) => {
   }
 }
 
+exports.getVendorProfile = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id }).populate("userId", "name email")
+    if (!vendor) {
+      // Return user data if no vendor profile exists yet
+      const User = require("../models/User")
+      const user = await User.findById(req.user.id)
+      return res.status(200).json({
+        name: user.name,
+        email: user.email,
+        companyName: "",
+        phone: "",
+        bio: "",
+        profileImage: "",
+        businessName: "",
+        description: "",
+        services: [],
+        location: "",
+        priceRange: { min: 0, max: 0 },
+        contactInfo: { phone: "", email: user.email, website: "" },
+      })
+    }
+    res.status(200).json(vendor)
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message })
+  }
+}
+
 exports.updateVendorProfile = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id })
+    let vendor = await Vendor.findOne({ userId: req.user.id })
+
     if (!vendor) {
-      return res.status(404).json({ message: "Vendor profile not found" })
+      // Create new vendor profile if it doesn't exist
+      const { businessName = "My Business", location = "Not specified", priceRange = { min: 0, max: 1000 } } = req.body
+
+      vendor = new Vendor({
+        userId: req.user.id,
+        businessName,
+        location,
+        priceRange,
+        ...req.body,
+      })
+
+      const savedVendor = await vendor.save()
+      const populatedVendor = await Vendor.findById(savedVendor._id).populate("userId", "name email")
+
+      return res.json({ message: "Vendor profile created successfully", vendor: populatedVendor })
     }
 
+    // Update existing vendor profile
     const updatedVendor = await Vendor.findByIdAndUpdate(vendor._id, req.body, { new: true }).populate(
       "userId",
       "name email",

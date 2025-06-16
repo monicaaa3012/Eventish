@@ -4,6 +4,7 @@ const {
   createVendorProfile,
   getAllVendors,
   getVendorById,
+  getVendorProfile,
   updateVendorProfile,
   getVendorServices,
   getVendorLocations,
@@ -14,10 +15,13 @@ const authMiddleware = require("../middleware/authMiddleware")
 router.get("/", getAllVendors)
 router.get("/services", getVendorServices)
 router.get("/locations", getVendorLocations)
-router.get("/:id", getVendorById)
 
-// Protected routes
+// Protected routes (put these BEFORE the /:id route)
 router.post("/", authMiddleware, createVendorProfile)
-router.put("/profile", authMiddleware, updateVendorProfile)
+router.get("/me", authMiddleware, getVendorProfile) // ✅ for GET vendor profile by logged-in user
+router.put("/profile", authMiddleware, updateVendorProfile) // ✅ for updating vendor profile
+
+// Public route with ID parameter (put this LAST)
+router.get("/:id", getVendorById)
 
 module.exports = router

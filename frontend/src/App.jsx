@@ -11,6 +11,8 @@ import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
 import VendorBrowse from "./pages/Vendor/VendorBrowse"
 import VendorDetails from "./pages/Vendor/VendorDetails"
+import UpdateVendorProfile from "./pages/Vendor/UpdateVendorProfile"
+import VendorProfile from "./pages/Vendor/VendorProfile"
 
 
 const App = () => {
@@ -38,6 +40,24 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["vendor"]}>
                 <VendorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* Vendor Profile Routes */}
+          <Route
+            path="/vendor/profile"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <VendorProfile />
+              </ProtectedRoute>
+            }
+          />
+          // Update Vendor Profile Route
+          <Route
+            path="/vendor/update-profile"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <UpdateVendorProfile />
               </ProtectedRoute>
             }
           />
@@ -86,6 +106,8 @@ const App = () => {
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+        
 
         
       </div>

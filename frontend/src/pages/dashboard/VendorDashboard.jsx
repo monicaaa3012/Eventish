@@ -38,6 +38,39 @@ const VendorDashboard = () => {
 
   const quickActions = [
     {
+      title: "View Profile",
+      description: "See your public vendor profile",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+      ),
+      color: "from-indigo-500 to-purple-500",
+      action: () => navigate("/vendor/profile"),
+    },
+    {
+      title: "Update Profile",
+      description: "Edit your vendor profile",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          />
+        </svg>
+      ),
+      color: "from-yellow-500 to-orange-500",
+      action: () => navigate("/vendor/update-profile"),
+    },
+    {
       title: "Add Service",
       description: "List a new service offering",
       icon: (
@@ -46,7 +79,7 @@ const VendorDashboard = () => {
         </svg>
       ),
       color: "from-blue-500 to-indigo-500",
-      action: () => console.log("Add Service"),
+      action: () => navigate("/addservice"),
     },
     {
       title: "Manage Bookings",
@@ -81,20 +114,20 @@ const VendorDashboard = () => {
       action: () => console.log("View Analytics"),
     },
     {
-      title: "Update Profile",
-      description: "Edit your vendor profile",
+      title: "Browse Vendors",
+      description: "See other vendors on the platform",
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="2"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
       ),
-      color: "from-yellow-500 to-orange-500",
-      action: () => console.log("Update Profile"),
+      color: "from-pink-500 to-red-500",
+      action: () => navigate("/vendors"),
     },
   ]
 
@@ -225,7 +258,7 @@ const VendorDashboard = () => {
         {/* Quick Actions */}
         <div className="mb-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {quickActions.map((action, index) => (
               <div
                 key={index}
