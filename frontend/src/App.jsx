@@ -12,6 +12,7 @@ import ProtectedRoute from "./routes/ProtectedRoute"
 import VendorBrowse from "./pages/Vendor/VendorBrowse"
 import VendorDetails from "./pages/Vendor/VendorDetails"
 import BookingManagement from "./pages/bookings/BookingManagement"
+import AddService from "./pages/Vendor/AddService/AddService"
 
 
 const App = () => {
@@ -91,6 +92,13 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+           <Route
+             path="/addservice" 
+             element={
+             <ProtectedRoute allowedRoles={["vendor"]}>
+             <AddService/>
+            </ProtectedRoute>}
+             />
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
