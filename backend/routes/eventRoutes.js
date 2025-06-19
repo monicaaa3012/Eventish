@@ -1,6 +1,5 @@
-const express = require("express")
-const router = express.Router()
-const {
+import express from "express";
+import {
   createEvent,
   getAllEvents,
   getUserEvents,
@@ -8,11 +7,14 @@ const {
   deleteEvent,
   getEventStats,
   getEventById,
-} = require("../controllers/eventController")
-const authMiddleware = require("../middleware/authMiddleware")
+} from "../controllers/eventController.js"; // note .js extension
+
+import authMiddleware from "../middleware/authMiddleware.js";
+
+const router = express.Router();
 
 // Create event (authenticated users)
-router.post("/", authMiddleware, createEvent)
+router.post("/", authMiddleware, createEvent);
 
 // Get all events (admin only)
 router.get(
@@ -20,15 +22,15 @@ router.get(
   authMiddleware,
   (req, res, next) => {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access required" })
+      return res.status(403).json({ message: "Admin access required" });
     }
-    next()
+    next();
   },
   getAllEvents,
-)
+);
 
 // Get user's own events
-router.get("/my-events", authMiddleware, getUserEvents)
+router.get("/my-events", authMiddleware, getUserEvents);
 
 // Get event statistics (admin only)
 router.get(
@@ -36,20 +38,20 @@ router.get(
   authMiddleware,
   (req, res, next) => {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access required" })
+      return res.status(403).json({ message: "Admin access required" });
     }
-    next()
+    next();
   },
   getEventStats,
-)
+);
 
 // Get single event by ID (public route for now)
-router.get("/:id", getEventById)
+router.get("/:id", getEventById);
 
 // Update event
-router.put("/:id", authMiddleware, updateEvent)
+router.put("/:id", authMiddleware, updateEvent);
 
 // Delete event
-router.delete("/:id", authMiddleware, deleteEvent)
+router.delete("/:id", authMiddleware, deleteEvent);
 
-module.exports = router
+export default router;  // ESM export

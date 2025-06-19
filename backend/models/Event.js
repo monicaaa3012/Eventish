@@ -1,11 +1,23 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"; // ✅ ES Module import
 
-const eventSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+const EventSchema = new mongoose.Schema({ // ✅ Schema definition
+  title: {
+    type: String,
+    required: true,
+  },
   description: String,
-  date: { type: Date, required: true },
+  date: {
+    type: Date,
+    required: true,
+  },
   location: String,
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-}, { timestamps: true });
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // ✅ reference to the User model
+    required: true,
+  },
+}, { timestamps: true }); // ✅ auto adds createdAt & updatedAt fields
 
-module.exports = mongoose.model('Event', eventSchema);
+const Event = mongoose.model("Event", EventSchema); // ✅ model creation
+
+export default Event; // ✅ ES Module default export

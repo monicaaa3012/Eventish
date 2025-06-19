@@ -1,20 +1,52 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
-const eventRoutes = require('./routes/eventRoutes');
+import express from "express"
+import dotenv from "dotenv"
+import cors from "cors"
+import path from "path"
+import fs from "fs"
+import { fileURLToPath } from "url"
+import connectDB from "./config/db.js"
+import authRoutes from "./routes/authRoutes.js"
+import eventRoutes from "./routes/eventRoutes.js"
+import serviceRoutes from "./routes/ServiceRoutes.js"
+import multer from "multer" // Import multer
 
-dotenv.config();
-connectDB();
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-const app = express();
+dotenv.config()
+connectDB()
 
-app.use(cors());
-app.use(express.json());
+const app = express()
 
-app.use("/api/auth", authRoutes);
-app.use('/api/events', eventRoutes);
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, "uploads")
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:5173"], // Add your frontend URLs
+    credentials: true,
+  }),
+)
+app.use(express.json())
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+
+app.use("/api/auth", authRoutes)
+app.use("/api/events", eventRoutes)
+app.use("/api/services", serviceRoutes)
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ error: "File too large" })
+    }
+  }
+  res.status(500).json({ error: error.message })
+})
+
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

@@ -1,8 +1,8 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js"; // note the .js extension
 
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -18,15 +18,13 @@ exports.register = async (req, res) => {
       role,
     });
 
-    // No token returned here
     res.status(201).json({ message: "Registration successful, please log in." });
   } catch (err) {
     res.status(500).json({ message: "Registration failed", error: err.message });
   }
 };
 
-
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
