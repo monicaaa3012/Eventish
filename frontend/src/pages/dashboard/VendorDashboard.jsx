@@ -12,6 +12,8 @@ const VendorDashboard = () => {
     bookings: [],
     revenue: 0,
   })
+  const [myServices, setMyServices] = useState([])
+  const [servicesLoading, setServicesLoading] = useState(true)
 
   useEffect(() => {
     // Get user info from localStorage or API
@@ -27,7 +29,56 @@ const VendorDashboard = () => {
         revenue: 0,
       })
     }
+    fetchMyServices()
   }, [])
+
+  const fetchMyServices = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const response = await fetch("/api/services/my-services", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMyServices(data)
+      } else {
+        console.error("Failed to fetch services")
+      }
+    } catch (error) {
+      console.error("Error fetching services:", error)
+    } finally {
+      setServicesLoading(false)
+    }
+  }
+
+  const handleDeleteService = async (serviceId) => {
+    if (!window.confirm("Are you sure you want to delete this service?")) return
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch(`/api/services/${serviceId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        setMyServices(myServices.filter((service) => service._id !== serviceId))
+        alert("Service deleted successfully")
+      } else {
+        alert("Failed to delete service")
+      }
+    } catch (error) {
+      console.error("Error deleting service:", error)
+      alert("Error deleting service")
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token")
@@ -37,6 +88,39 @@ const VendorDashboard = () => {
   }
 
   const quickActions = [
+    {
+      title: "View Profile",
+      description: "See your public vendor profile",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+      ),
+      color: "from-indigo-500 to-purple-500",
+      action: () => navigate("/vendor/profile"),
+    },
+    {
+      title: "Update Profile",
+      description: "Edit your vendor profile",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          />
+        </svg>
+      ),
+      color: "from-yellow-500 to-orange-500",
+      action: () => navigate("/vendor/update-profile"),
+    },
     {
       title: "Add Service",
       description: "List a new service offering",
@@ -62,7 +146,7 @@ const VendorDashboard = () => {
         </svg>
       ),
       color: "from-green-500 to-teal-500",
-      action: () => console.log("Manage Bookings"),
+      action: () => navigate("/vendor/manage-bookings"),
     },
     {
       title: "View Analytics",
@@ -80,28 +164,12 @@ const VendorDashboard = () => {
       color: "from-purple-500 to-pink-500",
       action: () => console.log("View Analytics"),
     },
-    {
-      title: "Update Profile",
-      description: "Edit your vendor profile",
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      ),
-      color: "from-yellow-500 to-orange-500",
-      action: () => console.log("Update Profile"),
-    },
   ]
 
   const stats = [
     {
       title: "Total Services",
-      value: "0",
+      value: myServices.length.toString(),
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -225,7 +293,7 @@ const VendorDashboard = () => {
         {/* Quick Actions */}
         <div className="mb-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {quickActions.map((action, index) => (
               <div
                 key={index}
@@ -246,6 +314,118 @@ const VendorDashboard = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* My Services Section */}
+        <div className="glass rounded-3xl p-8 border border-white/20 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-800">My Services</h3>
+            <div className="flex items-center space-x-4">
+              <span className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
+                {myServices.length} Service{myServices.length !== 1 ? "s" : ""}
+              </span>
+              <button
+                onClick={() => navigate("/addservice")}
+                className="bg-primary-gradient text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
+              >
+                Add New Service
+              </button>
+            </div>
+          </div>
+
+          {servicesLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
+            </div>
+          ) : myServices.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M7 7h10M7 11h10M7 15h10"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">No services yet</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Start showcasing your services to attract more clients and grow your business!
+              </p>
+              <button
+                onClick={() => navigate("/addservice")}
+                className="bg-primary-gradient text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
+                Add Your First Service
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myServices.map((service) => (
+                <div
+                  key={service._id}
+                  className="group bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+                >
+                  <div className="p-6">
+                    {/* Service Images */}
+                    {service.images && service.images.length > 0 && (
+                      <div className="mb-4">
+                        <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                          <img
+                            src={`http://localhost:5000/${service.images[0]}` || "/placeholder.svg"}
+                            alt="Service"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.target.src = "/placeholder.svg"
+                            }}
+                          />
+                        </div>
+                        {service.images.length > 1 && (
+                          <p className="text-xs text-gray-500 mt-2">+{service.images.length - 1} more images</p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <h3 className="text-lg font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">
+                          Service Package
+                        </h3>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-purple-600">${service.price}</div>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{service.description}</p>
+
+                      <div className="text-xs text-gray-500">
+                        Added {new Date(service.createdAt).toLocaleDateString()}
+                      </div>
+
+                      <div className="flex space-x-3 pt-4">
+                        <button
+                          onClick={() => {
+                            // You can add edit functionality here
+                            console.log("Edit service:", service._id)
+                          }}
+                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteService(service._id)}
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Coming Soon Features */}

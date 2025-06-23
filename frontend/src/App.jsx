@@ -9,8 +9,13 @@ import EventDetails from "./components/EventDetails"
 import GeneralDashboard from "./pages/dashboard/GeneralDashboard"
 import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
-import AddService from "./pages/AddService/AddService"
-
+import VendorBrowse from "./pages/Vendor/VendorBrowse"
+import VendorDetails from "./pages/Vendor/VendorDetails"
+import BookingManagement from "./pages/bookings/BookingManagement"
+import AddService from "./pages/Vendor/AddService/AddService"
+import ManageBooking from "./pages/Vendor/ManageBooking"
+import UpdateVendorProfile from "./pages/Vendor/UpdateVendorProfile"
+import VendorProfile from "./pages/Vendor/VendorProfile"
 
 const App = () => {
   return (
@@ -40,6 +45,23 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+            <Route
+            path="/vendor/profile"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <VendorProfile />
+              </ProtectedRoute>
+            }
+          />
+          // Update Vendor Profile Route
+          <Route
+            path="/vendor/update-profile"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <UpdateVendorProfile />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/dashboard"
             element={
@@ -64,13 +86,46 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
           <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorBrowse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors/:id"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorDetails />
+              </ProtectedRoute>
+            }
+          />
+<Route
+            path="/bookings"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <BookingManagement />
+              </ProtectedRoute>
+            }
+          />
+           <Route
              path="/addservice" 
              element={
              <ProtectedRoute allowedRoles={["vendor"]}>
              <AddService/>
             </ProtectedRoute>}
              />
+             <Route
+  path="/vendor/manage-bookings"
+  element={
+    <ProtectedRoute allowedRoles={["vendor"]}>
+      <ManageBooking />
+    </ProtectedRoute>
+  }
+/>
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
