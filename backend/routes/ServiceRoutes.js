@@ -1,9 +1,13 @@
-const express = require("express")
-const multer = require("multer")
-const path = require("path")
-const fs = require("fs")
-const Service = require("../models/ServiceModel.js")
-const authMiddleware = require("../middleware/authMiddleware.js")
+import express from "express"
+import multer from "multer"
+import path from "path"
+import fs from "fs"
+import Service from "../models/ServiceModel.js"
+import authMiddleware from "../middleware/authMiddleware.js"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const router = express.Router()
 
@@ -98,6 +102,23 @@ const getUserServices = async (req, res) => {
   }
 }
 
+// Get single service by ID
+const getServiceById = async (req, res) => {
+  try {
+    const { id } = req.params
+    const service = await Service.findById(id).populate("createdBy", "name email")
+
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" })
+    }
+
+    res.json(service)
+  } catch (err) {
+    console.error("Error fetching service:", err)
+    res.status(500).json({ error: "Failed to fetch service" })
+  }
+}
+
 // Delete service
 const deleteService = async (req, res) => {
   try {
@@ -135,6 +156,7 @@ const deleteService = async (req, res) => {
 router.post("/add", authMiddleware, upload.array("images", 4), addService)
 router.get("/", getAllServices)
 router.get("/my-services", authMiddleware, getUserServices)
+router.get("/:id", getServiceById)
 router.delete("/:id", authMiddleware, deleteService)
 
-module.exports = router
+export default router

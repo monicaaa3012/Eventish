@@ -1,6 +1,6 @@
-const Event = require("../models/Event")
+import Event from "../models/Event.js"
 
-exports.createEvent = async (req, res) => {
+export const createEvent = async (req, res) => {
   try {
     const { title, description, date, location, budget } = req.body
 
@@ -25,7 +25,7 @@ exports.createEvent = async (req, res) => {
   }
 }
 
-exports.getAllEvents = async (req, res) => {
+export const getAllEvents = async (req, res) => {
   try {
     console.log("Fetching all events for admin...")
     const events = await Event.find().populate("createdBy", "name email").sort({ createdAt: -1 })
@@ -37,7 +37,7 @@ exports.getAllEvents = async (req, res) => {
   }
 }
 
-exports.getUserEvents = async (req, res) => {
+export const getUserEvents = async (req, res) => {
   try {
     const events = await Event.find({ createdBy: req.user.id }).sort({ createdAt: -1 })
     res.json(events)
@@ -46,7 +46,7 @@ exports.getUserEvents = async (req, res) => {
   }
 }
 
-exports.updateEvent = async (req, res) => {
+export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params
     const { title, description, date, location, budget } = req.body
@@ -73,7 +73,7 @@ exports.updateEvent = async (req, res) => {
   }
 }
 
-exports.deleteEvent = async (req, res) => {
+export const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params
 
@@ -94,7 +94,7 @@ exports.deleteEvent = async (req, res) => {
   }
 }
 
-exports.getEventStats = async (req, res) => {
+export const getEventStats = async (req, res) => {
   try {
     console.log("Fetching event stats...")
 
@@ -152,7 +152,7 @@ exports.getEventStats = async (req, res) => {
   }
 }
 
-exports.getEventById = async (req, res) => {
+export const getEventById = async (req, res) => {
   try {
     const { id } = req.params
     const event = await Event.findById(id).populate("createdBy", "name email")

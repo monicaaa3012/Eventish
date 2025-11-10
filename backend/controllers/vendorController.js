@@ -1,7 +1,7 @@
-const Vendor = require("../models/Vendor")
-const User = require("../models/User")
+import Vendor from "../models/Vendor.js"
+import User from "../models/User.js"
 
-exports.createVendorProfile = async (req, res) => {
+export const createVendorProfile = async (req, res) => {
   try {
     const { businessName, companyName, bio, profileImage, description, services, location, priceRange, contactInfo } =
       req.body
@@ -31,7 +31,7 @@ exports.createVendorProfile = async (req, res) => {
   }
 }
 
-exports.getAllVendors = async (req, res) => {
+export const getAllVendors = async (req, res) => {
   try {
     const {
       service,
@@ -91,7 +91,7 @@ exports.getAllVendors = async (req, res) => {
   }
 }
 
-exports.getVendorById = async (req, res) => {
+export const getVendorById = async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.params.id).populate("userId", "name email")
     if (!vendor) {
@@ -103,7 +103,19 @@ exports.getVendorById = async (req, res) => {
   }
 }
 
-exports.getVendorProfile = async (req, res) => {
+export const getVendorByUserId = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.params.userId }).populate("userId", "name email")
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" })
+    }
+    res.json(vendor)
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching vendor", error: error.message })
+  }
+}
+
+export const getVendorProfile = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({ userId: req.user.id }).populate("userId", "name email")
     if (!vendor) {
@@ -131,7 +143,7 @@ exports.getVendorProfile = async (req, res) => {
   }
 }
 
-exports.updateVendorProfile = async (req, res) => {
+export const updateVendorProfile = async (req, res) => {
   try {
     let vendor = await Vendor.findOne({ userId: req.user.id })
 
@@ -165,7 +177,7 @@ exports.updateVendorProfile = async (req, res) => {
   }
 }
 
-exports.getVendorServices = async (req, res) => {
+export const getVendorServices = async (req, res) => {
   try {
     const services = await Vendor.distinct("services")
     res.json(services)
@@ -174,7 +186,7 @@ exports.getVendorServices = async (req, res) => {
   }
 }
 
-exports.getVendorLocations = async (req, res) => {
+export const getVendorLocations = async (req, res) => {
   try {
     const locations = await Vendor.distinct("location")
     res.json(locations)

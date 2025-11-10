@@ -10,6 +10,8 @@ const CreateEvent = () => {
     description: "",
     date: "",
     location: "",
+    budget: "",
+    
   })
   const [loading, setLoading] = useState(false)
 
@@ -142,13 +144,14 @@ const CreateEvent = () => {
               required
             />
           </div>
- <div>
+
+          <div>
             <label htmlFor="budget" className="block text-sm font-semibold text-gray-700 mb-2">
               Budget
             </label>
             <input
               id="budget"
-              type="text"
+              type="number"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
@@ -157,6 +160,7 @@ const CreateEvent = () => {
               required
             />
           </div>
+
           <div className="space-y-4 pt-4">
             <button
               type="submit"

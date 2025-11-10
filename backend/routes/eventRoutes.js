@@ -1,6 +1,5 @@
-const express = require("express")
-const router = express.Router()
-const {
+import express from "express"
+import {
   createEvent,
   getAllEvents,
   getUserEvents,
@@ -8,16 +7,18 @@ const {
   deleteEvent,
   getEventStats,
   getEventById,
-} = require("../controllers/eventController")
-const authMiddleware = require("../middleware/authMiddleware")
+} from "../controllers/eventController.js"
+import protect from "../middleware/authMiddleware.js"
+
+const router = express.Router()
 
 // Create event (authenticated users)
-router.post("/", authMiddleware, createEvent)
+router.post("/", protect, createEvent)
 
 // Get all events (admin only)
 router.get(
   "/all",
-  authMiddleware,
+  protect,
   (req, res, next) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" })
@@ -28,12 +29,12 @@ router.get(
 )
 
 // Get user's own events
-router.get("/my-events", authMiddleware, getUserEvents)
+router.get("/my-events", protect, getUserEvents)
 
 // Get event statistics (admin only)
 router.get(
   "/stats",
-  authMiddleware,
+  protect,
   (req, res, next) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" })
@@ -47,9 +48,9 @@ router.get(
 router.get("/:id", getEventById)
 
 // Update event
-router.put("/:id", authMiddleware, updateEvent)
+router.put("/:id", protect, updateEvent)
 
 // Delete event
-router.delete("/:id", authMiddleware, deleteEvent)
+router.delete("/:id", protect, deleteEvent)
 
-module.exports = router
+export default router

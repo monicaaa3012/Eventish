@@ -1,6 +1,5 @@
-const express = require("express")
-const router = express.Router()
-const {
+import express from "express"
+import {
   createVendorProfile,
   getAllVendors,
   getVendorById,
@@ -8,8 +7,11 @@ const {
   updateVendorProfile,
   getVendorServices,
   getVendorLocations,
-} = require("../controllers/vendorController")
-const authMiddleware = require("../middleware/authMiddleware")
+  getVendorByUserId,
+} from "../controllers/vendorController.js"
+import authMiddleware from "../middleware/authMiddleware.js"
+
+const router = express.Router()
 
 // Public routes
 router.get("/", getAllVendors)
@@ -22,6 +24,7 @@ router.post("/", authMiddleware, createVendorProfile)
 router.put("/profile", authMiddleware, updateVendorProfile)
 
 // Public route with parameter (must be last)
+router.get("/user/:userId", getVendorByUserId)
 router.get("/:id", getVendorById)
 
-module.exports = router
+export default router

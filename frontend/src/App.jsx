@@ -16,6 +16,8 @@ import AddService from "./pages/Vendor/AddService/AddService"
 import ManageBooking from "./pages/Vendor/ManageBooking"
 import UpdateVendorProfile from "./pages/Vendor/UpdateVendorProfile"
 import VendorProfile from "./pages/Vendor/VendorProfile"
+import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
+import UserDetails from "./pages/customer/UserDetails"
 
 const App = () => {
   return (
@@ -34,6 +36,14 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user"]}>
                 <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/user/details"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <UserDetails />
               </ProtectedRoute>
             }
           />
@@ -100,6 +110,14 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
                 <VendorDetails />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/services/:serviceId"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <ServiceDetails />
               </ProtectedRoute>
             }
           />

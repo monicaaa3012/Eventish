@@ -7,9 +7,11 @@ const UserDashboard = () => {
   const navigate = useNavigate()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [profileComplete, setProfileComplete] = useState(false)
 
   useEffect(() => {
     fetchUserEvents()
+    checkProfileComplete()
   }, [])
 
   const fetchUserEvents = async () => {
@@ -29,6 +31,24 @@ const UserDashboard = () => {
       console.error("Error fetching events:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkProfileComplete = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/user-details/check-complete", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProfileComplete(data.profileComplete)
+      }
+    } catch (error) {
+      console.error("Error checking profile completion:", error)
     }
   }
 
@@ -106,6 +126,39 @@ const UserDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Completion Alert */}
+        {!profileComplete && (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">Complete Your Profile</h3>
+                  <p className="text-gray-600">
+                    Add your personal details to make booking requests easier and provide vendors with necessary
+                    information.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/user/details")}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Complete Profile
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-2xl p-6 border border-white/20 transition-all duration-500 transform hover:-translate-y-3">

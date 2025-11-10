@@ -1,11 +1,12 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose"
+
 const vendorSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     businessName: { type: String, required: true },
-    companyName: String, // ✅ add this
-    bio: String, // ✅ add this
-    profileImage: String, // ✅ add this
+    companyName: String,
+    bio: String,
+    profileImage: String,
     description: String,
     services: [String],
     location: { type: String, required: true },
@@ -33,4 +34,4 @@ const vendorSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-module.exports = mongoose.model("Vendor", vendorSchema)
+export default mongoose.model("Vendor", vendorSchema)

@@ -1,14 +1,20 @@
-const express = require("express")
-const dotenv = require("dotenv")
-const cors = require("cors")
-const path = require("path")
-const fs = require("fs")
-const connectDB = require("./config/db.js")
-const authRoutes = require("./routes/authRoutes.js")
-const eventRoutes = require("./routes/eventRoutes.js")
-const vendorRoutes = require("./routes/vendorRoutes.js")
-const serviceRoutes = require("./routes/ServiceRoutes.js")
-const multer = require("multer")
+import express from "express"
+import dotenv from "dotenv"
+import cors from "cors"
+import path from "path"
+import fs from "fs"
+import { fileURLToPath } from "url"
+import multer from "multer"
+import connectDB from "./config/db.js"
+import authRoutes from "./routes/authRoutes.js"
+import eventRoutes from "./routes/eventRoutes.js"
+import vendorRoutes from "./routes/vendorRoutes.js"
+import serviceRoutes from "./routes/ServiceRoutes.js"
+import bookingRoutes from "./routes/bookingRoutes.js"
+import recommendationRoutes from "./routes/recommendationRoutes.js";
+// ES Module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 dotenv.config()
 connectDB()
@@ -34,6 +40,8 @@ app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
 app.use("/api/vendors", vendorRoutes)
 app.use("/api/services", serviceRoutes)
+app.use("/api/bookings", bookingRoutes)
+app.use("/api/recommendations", recommendationRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {

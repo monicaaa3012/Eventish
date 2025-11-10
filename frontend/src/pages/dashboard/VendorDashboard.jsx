@@ -37,7 +37,7 @@ const VendorDashboard = () => {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const response = await fetch("/api/services/my-services", {
+      const response = await fetch("http://localhost:5000/api/services/my-services", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -61,7 +61,7 @@ const VendorDashboard = () => {
 
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`/api/services/${serviceId}`, {
+      const response = await fetch(`http://localhost:5000/api/services/${serviceId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -405,11 +405,19 @@ const VendorDashboard = () => {
 
                       <div className="flex space-x-3 pt-4">
                         <button
+   onClick={() => {
+                            // You can add edit functionality here
+                            console.log("Edit service:", service._id)}}
+    className="flex-1 bg-indigo-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+  >
+    Details
+  </button>
+                        <button
                           onClick={() => {
                             // You can add edit functionality here
                             console.log("Edit service:", service._id)
                           }}
-                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                          className="flex-1 bg-indigo-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
                         >
                           Edit
                         </button>

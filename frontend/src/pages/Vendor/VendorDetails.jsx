@@ -264,7 +264,8 @@ const VendorDetails = () => {
                   {vendorServices.map((service) => (
                     <div
                       key={service._id}
-                      className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                      className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                      onClick={() => navigate(`/services/${service._id}`)}
                     >
                       {/* Service Images */}
                       {service.images && service.images.length > 0 && (
@@ -318,7 +319,15 @@ const VendorDetails = () => {
                           <div className="text-xs text-gray-500">
                             Added {new Date(service.createdAt).toLocaleDateString()}
                           </div>
-                         
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/services/${service._id}`)
+                            }}
+                            className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105"
+                          >
+                            View Details
+                          </button>
                         </div>
                       </div>
                     </div>
