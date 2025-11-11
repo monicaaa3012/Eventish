@@ -283,6 +283,7 @@ const VendorDetails = () => {
                                 }`}
                               >
                                 <img
+                                  // eslint-disable-next-line no-constant-binary-expression
                                   src={`http://localhost:5000/${image}` || "/placeholder.svg"}
                                   alt={`Service ${index + 1}`}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

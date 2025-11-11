@@ -151,7 +151,7 @@ const VendorBrowse = () => {
             </p>
           </div>
           <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/user/dashboard")}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium"
             >
               Back
