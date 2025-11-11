@@ -18,6 +18,7 @@ import UpdateVendorProfile from "./pages/Vendor/UpdateVendorProfile"
 import VendorProfile from "./pages/Vendor/VendorProfile"
 import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
 import UserDetails from "./pages/customer/UserDetails"
+import EditService from "./pages/Vendor/AddService/EditService" // Add this import
 
 const App = () => {
   return (
@@ -39,7 +40,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-           <Route
+          <Route
             path="/user/details"
             element={
               <ProtectedRoute allowedRoles={["user"]}>
@@ -55,7 +56,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-            <Route
+          <Route
             path="/vendor/profile"
             element={
               <ProtectedRoute allowedRoles={["vendor"]}>
@@ -63,7 +64,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          // Update Vendor Profile Route
+          {/* Update Vendor Profile Route */}
           <Route
             path="/vendor/update-profile"
             element={
@@ -113,7 +114,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-           <Route
+          <Route
             path="/services/:serviceId"
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
@@ -121,7 +122,16 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-<Route
+          {/* Add Edit Service Route */}
+          <Route
+            path="/edit-service/:serviceId"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <EditService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/bookings"
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
@@ -129,27 +139,26 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-           <Route
-             path="/addservice" 
-             element={
-             <ProtectedRoute allowedRoles={["vendor"]}>
-             <AddService/>
-            </ProtectedRoute>}
-             />
-             <Route
-  path="/vendor/manage-bookings"
-  element={
-    <ProtectedRoute allowedRoles={["vendor"]}>
-      <ManageBooking />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/addservice"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <AddService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/manage-bookings"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <ManageBooking />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        
       </div>
     </Router>
   )

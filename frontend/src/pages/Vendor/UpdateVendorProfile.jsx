@@ -141,7 +141,7 @@ const UpdateVendorProfile = () => {
                   name="name"
                   value={vendorData.name || ""}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                   required
                 />
               </div>
@@ -165,8 +165,7 @@ const UpdateVendorProfile = () => {
                   name="businessName"
                   value={vendorData.businessName || ""}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  required
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 />
               </div>
 
@@ -177,7 +176,7 @@ const UpdateVendorProfile = () => {
                   name="companyName"
                   value={vendorData.companyName || ""}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 />
               </div>
 
@@ -188,7 +187,7 @@ const UpdateVendorProfile = () => {
                   name="location"
                   value={vendorData.location || ""}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                   required
                 />
               </div>
@@ -200,7 +199,7 @@ const UpdateVendorProfile = () => {
                   name="contactInfo.phone"
                   value={vendorData.contactInfo?.phone || ""}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 />
               </div>
 
@@ -211,7 +210,7 @@ const UpdateVendorProfile = () => {
                   name="priceRange.min"
                   value={vendorData.priceRange?.min || 0}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 />
               </div>
 
@@ -222,7 +221,7 @@ const UpdateVendorProfile = () => {
                   name="priceRange.max"
                   value={vendorData.priceRange?.max || 1000}
                   onChange={handleChange}
-                  className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 />
               </div>
             </div>
@@ -234,7 +233,7 @@ const UpdateVendorProfile = () => {
                 value={vendorData.description || ""}
                 onChange={handleChange}
                 rows="4"
-                className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 placeholder="Describe your business and services..."
               ></textarea>
             </div>
@@ -246,7 +245,7 @@ const UpdateVendorProfile = () => {
                 value={vendorData.bio || ""}
                 onChange={handleChange}
                 rows="4"
-                className="w-full glass-input rounded-xl p-4 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-white/50 rounded-xl p-4 border-0 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200"
                 placeholder="Tell clients about your experience and expertise..."
               ></textarea>
             </div>

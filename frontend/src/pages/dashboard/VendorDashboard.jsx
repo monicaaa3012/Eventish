@@ -80,6 +80,18 @@ const VendorDashboard = () => {
     }
   }
 
+  const handleEditService = (serviceId) => {
+    console.log("Editing service:", serviceId)
+    // Navigate to edit service page - you'll need to create this component
+    navigate(`/edit-service/${serviceId}`)
+  }
+
+  const handleViewDetails = (serviceId) => {
+    console.log("Viewing service details:", serviceId)
+    // Navigate to service details page
+    navigate(`/services/${serviceId}`)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("role")
@@ -295,9 +307,9 @@ const VendorDashboard = () => {
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {quickActions.map((action, index) => (
-              <div
+              <button
                 key={index}
-                className="group glass rounded-2xl p-6 card-hover cursor-pointer border border-white/20"
+                className="group glass rounded-2xl p-6 card-hover cursor-pointer border border-white/20 text-left w-full hover:shadow-xl transition-all duration-300"
                 onClick={action.action}
               >
                 <div className="text-center">
@@ -311,7 +323,7 @@ const VendorDashboard = () => {
                   </h4>
                   <p className="text-gray-600 text-sm">{action.description}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -326,7 +338,7 @@ const VendorDashboard = () => {
               </span>
               <button
                 onClick={() => navigate("/addservice")}
-                className="bg-primary-gradient text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
               >
                 Add New Service
               </button>
@@ -355,7 +367,7 @@ const VendorDashboard = () => {
               </p>
               <button
                 onClick={() => navigate("/addservice")}
-                className="bg-primary-gradient text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 Add Your First Service
               </button>
@@ -365,7 +377,7 @@ const VendorDashboard = () => {
               {myServices.map((service) => (
                 <div
                   key={service._id}
-                  className="group bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+                  className="group bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden"
                 >
                   <div className="p-6">
                     {/* Service Images */}
@@ -390,7 +402,7 @@ const VendorDashboard = () => {
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <h3 className="text-lg font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">
-                          Service Package
+                          {service.title || "Service Package"}
                         </h3>
                         <div className="text-right">
                           <div className="text-xl font-bold text-purple-600">${service.price}</div>
@@ -403,31 +415,38 @@ const VendorDashboard = () => {
                         Added {new Date(service.createdAt).toLocaleDateString()}
                       </div>
 
-                      <div className="flex space-x-3 pt-4">
-                        <button
-   onClick={() => {
-                            // You can add edit functionality here
-                            console.log("Edit service:", service._id)}}
-    className="flex-1 bg-indigo-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                      <div className="flex space-x-2 pt-4">
+  <button
+    onClick={(e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      handleViewDetails(service._id)
+    }}
+    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
   >
     Details
   </button>
-                        <button
-                          onClick={() => {
-                            // You can add edit functionality here
-                            console.log("Edit service:", service._id)
-                          }}
-                          className="flex-1 bg-indigo-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteService(service._id)}
-                          className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-                        >
-                          Delete
-                        </button>
-                      </div>
+  <button
+    onClick={(e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      handleEditService(service._id)
+    }}
+    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
+  >
+    Edit
+  </button>
+  <button
+    onClick={(e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      handleDeleteService(service._id)
+    }}
+    className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
+  >
+    Delete
+  </button>
+</div>
                     </div>
                   </div>
                 </div>

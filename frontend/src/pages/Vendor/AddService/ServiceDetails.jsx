@@ -113,7 +113,7 @@ const ServiceDetails = () => {
           <div className="text-purple-600 font-semibold text-xl mb-2">${service.price}</div>
           <div className="text-gray-500 text-sm mb-8">Added on {new Date(service.createdAt).toLocaleDateString()}</div>
 
-          {/* Vendor Info */}
+          {/* Vendor Info
           {vendor && (
             <div className="border-t pt-6">
               <h2 className="text-2xl font-bold mb-2">About the Vendor</h2>
@@ -125,10 +125,10 @@ const ServiceDetails = () => {
                 onClick={() => navigate(`/vendors/${vendor._id}`)}
                 className="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
               >
-                View Vendor Profile
+               
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
