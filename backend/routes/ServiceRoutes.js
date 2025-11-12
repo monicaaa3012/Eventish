@@ -119,6 +119,54 @@ const getServiceById = async (req, res) => {
   }
 }
 
+// Update service
+const updateService = async (req, res) => {
+  try {
+    const { id } = req.params
+    const service = await Service.findById(id)
+
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" })
+    }
+
+    // Check if user owns the service
+    if (service.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized to update this service" })
+    }
+
+    const { title, description, price, category } = req.body
+
+    // Validate price if provided
+    if (price !== undefined) {
+      const numericPrice = Number.parseFloat(price)
+      if (isNaN(numericPrice) || numericPrice < 0) {
+        return res.status(400).json({ error: "Price must be a valid positive number" })
+      }
+      service.price = numericPrice
+    }
+
+    // Update fields
+    if (title !== undefined) service.title = title
+    if (description !== undefined) service.description = description
+    if (category !== undefined) service.category = category
+
+    // Handle new image uploads if any
+    if (req.files && req.files.length > 0) {
+      const newImagePaths = req.files.map((file) => file.path)
+      service.images = [...service.images, ...newImagePaths]
+    }
+
+    await service.save()
+    res.json({
+      message: "Service updated successfully",
+      service,
+    })
+  } catch (err) {
+    console.error("Error updating service:", err)
+    res.status(500).json({ error: "Failed to update service" })
+  }
+}
+
 // Delete service
 const deleteService = async (req, res) => {
   try {
@@ -157,6 +205,7 @@ router.post("/add", authMiddleware, upload.array("images", 4), addService)
 router.get("/", getAllServices)
 router.get("/my-services", authMiddleware, getUserServices)
 router.get("/:id", getServiceById)
+router.put("/:id", authMiddleware, upload.array("images", 4), updateService)
 router.delete("/:id", authMiddleware, deleteService)
 
 export default router

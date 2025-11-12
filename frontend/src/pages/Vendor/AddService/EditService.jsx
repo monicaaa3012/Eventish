@@ -23,7 +23,7 @@ const EditService = () => {
   const fetchServiceData = async () => {
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`http://localhost:5000/api/services/${serviceId}`, {
+      const response = await fetch(`/api/services/${serviceId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +57,7 @@ const EditService = () => {
 
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`http://localhost:5000/api/services/${serviceId}`, {
+      const response = await fetch(`/api/services/${serviceId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const EditService = () => {
         navigate("/vendor/dashboard")
       } else {
         const errorData = await response.json()
-        setError(errorData.message || "Failed to update service")
+        setError(errorData.error || errorData.message || "Failed to update service")
       }
     } catch (error) {
       console.error("Error updating service:", error)

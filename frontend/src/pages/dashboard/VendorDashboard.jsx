@@ -96,7 +96,7 @@ const VendorDashboard = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("role")
     localStorage.removeItem("userId")
-    navigate("/login")
+    navigate("/")
   }
 
   const quickActions = [
@@ -428,6 +428,7 @@ const VendorDashboard = () => {
   </button>
   <button
     onClick={(e) => {
+      
       e.stopPropagation()
       e.preventDefault()
       handleEditService(service._id)

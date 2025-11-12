@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 
@@ -10,6 +8,7 @@ const ServiceDetails = () => {
   const [vendor, setVendor] = useState(null)
   const [loading, setLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -41,13 +40,26 @@ const ServiceDetails = () => {
   const nextImage = () => {
     if (service?.images?.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % service.images.length)
+      setImageError(false)
     }
   }
 
   const prevImage = () => {
     if (service?.images?.length > 1) {
       setCurrentImageIndex((prev) => (prev - 1 + service.images.length) % service.images.length)
+      setImageError(false)
     }
+  }
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null
+    // Handle both full paths and relative paths
+    if (imagePath.startsWith('http')) {
+      return imagePath
+    }
+    // Remove leading slash if present to avoid double slashes
+    const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath
+    return `/${cleanPath}`
   }
 
   if (loading) {
@@ -79,56 +91,245 @@ const ServiceDetails = () => {
           &larr; Back
         </button>
 
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-8 border border-white/20">
-          {/* Service Image */}
-          {service.images && service.images.length > 0 && (
-            <div className="relative mb-6">
-              <img
-                src={`/uploads/${service.images[currentImageIndex]}`}
-                alt="Service"
-                className="w-full rounded-xl object-cover aspect-video"
-              />
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg overflow-hidden border border-white/20">
+          {/* Service Image Gallery */}
+          {service.images && service.images.length > 0 ? (
+            <div className="relative bg-gray-100">
+              <div className="relative aspect-video w-full overflow-hidden">
+                {!imageError ? (
+                  <img
+                    src={getImageUrl(service.images[currentImageIndex])}
+                    alt={`${service.title} - Image ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                    <div className="text-center">
+                      <svg
+                        className="mx-auto h-16 w-16 text-gray-400 mb-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <p className="text-gray-500 text-sm">Image not available</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation Arrows */}
               {service.images.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 p-2 rounded-full text-white"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all duration-200 backdrop-blur-sm"
+                    aria-label="Previous image"
                   >
-                    &#8592;
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 p-2 rounded-full text-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 p-3 rounded-full text-white transition-all duration-200 backdrop-blur-sm"
+                    aria-label="Next image"
                   >
-                    &#8594;
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </>
               )}
+
+              {/* Image Counter */}
+              {service.images.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+                  {currentImageIndex + 1} / {service.images.length}
+                </div>
+              )}
+
+              {/* Thumbnail Navigation */}
+              {service.images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {service.images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentImageIndex(index)
+                        setImageError(false)
+                      }}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        index === currentImageIndex
+                          ? "bg-white w-8"
+                          : "bg-white/50 hover:bg-white/75"
+                      }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="aspect-video w-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+              <div className="text-center">
+                <svg
+                  className="mx-auto h-20 w-20 text-gray-400 mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p className="text-gray-500">No images available</p>
+              </div>
             </div>
           )}
 
           {/* Service Info */}
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">{service.title || "Service Details"}</h1>
-          <p className="text-gray-600 mb-4 whitespace-pre-line">{service.description}</p>
-          <div className="text-purple-600 font-semibold text-xl mb-2">${service.price}</div>
-          <div className="text-gray-500 text-sm mb-8">Added on {new Date(service.createdAt).toLocaleDateString()}</div>
-
-          {/* Vendor Info
-          {vendor && (
-            <div className="border-t pt-6">
-              <h2 className="text-2xl font-bold mb-2">About the Vendor</h2>
-              <p className="text-lg font-semibold">{vendor.businessName}</p>
-              <p className="text-gray-600">{vendor.description}</p>
-              <p className="text-sm mt-2 text-gray-500">Location: {vendor.location}</p>
-              <p className="text-sm text-yellow-600">Rating: {vendor.rating} ⭐</p>
-              <button
-                onClick={() => navigate(`/vendors/${vendor._id}`)}
-                className="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-              >
-               
-              </button>
+          <div className="p-8">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                  {service.title || "Service Details"}
+                </h1>
+                {service.category && (
+                  <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {service.category}
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-purple-600 mb-1">
+                  ${service.price}
+                </div>
+                {service.priceUnit && (
+                  <div className="text-sm text-gray-500">per {service.priceUnit}</div>
+                )}
+              </div>
             </div>
-          )} */}
+
+            {/* Description */}
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">Description</h2>
+              <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                {service.description || "No description available"}
+              </p>
+            </div>
+
+            {/* Service Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+              {service.duration && (
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <div className="text-sm text-gray-500">Duration</div>
+                    <div className="font-medium text-gray-800">{service.duration}</div>
+                  </div>
+                </div>
+              )}
+              
+              {service.availability && (
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <div>
+                    <div className="text-sm text-gray-500">Availability</div>
+                    <div className="font-medium text-gray-800">{service.availability}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <div>
+                  <div className="text-sm text-gray-500">Added on</div>
+                  <div className="font-medium text-gray-800">
+                    {new Date(service.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {service.location && (
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <div className="text-sm text-gray-500">Location</div>
+                    <div className="font-medium text-gray-800">{service.location}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Vendor Info */}
+            {vendor && (
+              <div className="border-t pt-6 mt-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">About the Vendor</h2>
+                <div className="flex items-start gap-4">
+                  {vendor.logo && (
+                    <img
+                      src={getImageUrl(vendor.logo)}
+                      alt={vendor.businessName}
+                      className="w-16 h-16 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                      }}
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-1">
+                      {vendor.businessName}
+                    </h3>
+                    {vendor.description && (
+                      <p className="text-gray-600 mb-3">{vendor.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      {vendor.location && (
+                        <div className="flex items-center gap-1 text-gray-500">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          </svg>
+                          {vendor.location}
+                        </div>
+                      )}
+                      {vendor.rating && (
+                        <div className="flex items-center gap-1 text-yellow-600">
+                          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                          </svg>
+                          {vendor.rating} / 5
+                        </div>
+                      )}
+                    </div>
+                                     </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
