@@ -11,9 +11,28 @@ const CreateEvent = () => {
     date: "",
     location: "",
     budget: "",
-    
+    requirements: [],
   })
+
   const [loading, setLoading] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const options = [
+    "Catering",
+    "Decoration",
+    "Photography",
+    "Music",
+    "Makeup",
+  ]
+
+  const toggleRequirement = (req) => {
+    setFormData((prev) => ({
+      ...prev,
+      requirements: prev.requirements.includes(req)
+        ? prev.requirements.filter((item) => item !== req)
+        : [...prev.requirements, req],
+    }))
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -56,15 +75,15 @@ const CreateEvent = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background decorations */}
+
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply blur-xl opacity-70 animate-float"></div>
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply blur-xl opacity-70 animate-float"
           style={{ animationDelay: "1s" }}
         ></div>
         <div
-          className="absolute top-40 left-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"
+          className="absolute top-40 left-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply blur-xl opacity-70 animate-float"
           style={{ animationDelay: "2s" }}
         ></div>
       </div>
@@ -83,127 +102,142 @@ const CreateEvent = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* TITLE */}
           <div>
-            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Event Title
             </label>
             <input
-              id="title"
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/80"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
               placeholder="Enter event title"
               required
             />
           </div>
 
+          {/* DESCRIPTION */}
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Description
             </label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/80 resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80 resize-none"
               placeholder="Describe your event..."
             />
           </div>
 
+          {/* DATE */}
           <div>
-            <label htmlFor="date" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Event Date & Time
             </label>
             <input
-              id="date"
               type="datetime-local"
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/80"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
               required
             />
           </div>
 
+          {/* LOCATION */}
           <div>
-            <label htmlFor="location" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Location
             </label>
             <input
-              id="location"
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/80"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
               placeholder="Enter event location"
               required
             />
           </div>
 
+          {/* BUDGET */}
           <div>
-            <label htmlFor="budget" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Budget
             </label>
             <input
-              id="budget"
               type="number"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/80"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
               placeholder="Enter event budget"
               required
             />
           </div>
 
+          {/* CUSTOM MULTI-SELECT */}
+          <div className="relative">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Event Requirements
+            </label>
+
+            <div
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white/80 cursor-pointer flex items-center justify-between"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              <span className="text-gray-600">
+                {formData.requirements.length > 0
+                  ? formData.requirements.join(", ")
+                  : "Select requirements"}
+              </span>
+              <span>▼</span>
+            </div>
+
+            {dropdownOpen && (
+              <div className="absolute mt-2 w-full bg-white shadow-lg rounded-xl border p-3 z-20">
+                {options.map((opt) => (
+                  <label
+                    key={opt}
+                    className="flex items-center gap-3 px-2 py-2 hover:bg-purple-50 rounded-lg cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.requirements.includes(opt)}
+                      onChange={() => toggleRequirement(opt)}
+                      className="w-4 h-4 text-purple-600"
+                    />
+                    <span className="text-gray-700">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* BUTTONS */}
           <div className="space-y-4 pt-4">
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-gradient text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-70 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold py-3 rounded-xl hover:scale-105 shadow-lg"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating Event...
-                </div>
-              ) : (
-                "Create Event"
-              )}
+              {loading ? "Creating..." : "Create Event"}
             </button>
 
             <button
               type="button"
               onClick={handleBack}
-              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105"
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-xl"
             >
               Back to Dashboard
             </button>
           </div>
+
         </form>
       </div>
     </div>

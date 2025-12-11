@@ -8,11 +8,17 @@ const BookingManagement = () => {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("customer") // customer or vendor
+  const [toast, setToast] = useState({ show: false, message: "", type: "" })
   const userRole = localStorage.getItem("role")
 
   useEffect(() => {
     fetchBookings()
   }, [activeTab])
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000)
+  }
 
   const fetchBookings = async () => {
     try {
@@ -38,6 +44,10 @@ const BookingManagement = () => {
   }
 
   const updateBookingStatus = async (bookingId, status) => {
+    if (!confirm(`Are you sure you want to ${status.toLowerCase()} this booking?`)) {
+      return
+    }
+
     try {
       const token = localStorage.getItem("token")
       const response = await fetch(`/api/bookings/${bookingId}/status`, {
@@ -50,14 +60,16 @@ const BookingManagement = () => {
       })
 
       if (response.ok) {
-        fetchBookings() // Refresh the list
-        alert(`Booking ${status.toLowerCase()} successfully!`)
+        const result = await response.json()
+        showToast(result.message || `Booking ${status.toLowerCase()} successfully!`, "success")
+        fetchBookings()
       } else {
-        alert("Failed to update booking status")
+        const errorData = await response.json()
+        showToast(errorData.message || "Failed to update booking status", "error")
       }
     } catch (error) {
       console.error("Error updating booking status:", error)
-      alert("Error updating booking status")
+      showToast("Error updating booking status", "error")
     }
   }
 
@@ -74,13 +86,59 @@ const BookingManagement = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800 border border-yellow-300"
       case "Accepted":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800 border border-green-300"
+      case "Scheduled":
+        return "bg-blue-100 text-blue-800 border border-blue-300"
+      case "In Progress":
+        return "bg-purple-100 text-purple-800 border border-purple-300"
+      case "Completed":
+        return "bg-emerald-100 text-emerald-800 border border-emerald-300"
       case "Rejected":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800 border border-red-300"
+      case "Cancelled":
+        return "bg-gray-100 text-gray-800 border border-gray-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800 border border-gray-300"
+    }
+  }
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Pending":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      case "Accepted":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        )
+      case "Scheduled":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        )
+      case "In Progress":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      case "Completed":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      default:
+        return null
     }
   }
 
@@ -172,58 +230,102 @@ const BookingManagement = () => {
                 key={booking._id}
                 className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300"
               >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2">
                           {activeTab === "customer" ? booking.vendorId?.businessName : booking.eventId?.title}
                         </h3>
-                        <div className="space-y-2 text-sm text-gray-600">
-                          {activeTab === "customer" ? (
-                            <>
-                              <p>
-                                <strong>Event:</strong> {booking.eventId?.title}
-                              </p>
-                              <p>
-                                <strong>Event Date:</strong> {formatDate(booking.eventId?.date)}
-                              </p>
-                              <p>
-                                <strong>Location:</strong> {booking.eventId?.location}
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p>
-                                <strong>Customer:</strong> {booking.customerId?.name}
-                              </p>
-                              <p>
-                                <strong>Email:</strong> {booking.customerId?.email}
-                              </p>
-                              <p>
-                                <strong>Event Date:</strong> {formatDate(booking.eventId?.date)}
-                              </p>
-                              <p>
-                                <strong>Location:</strong> {booking.eventId?.location}
-                              </p>
-                            </>
-                          )}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${getStatusColor(booking.status)}`}>
+                            {getStatusIcon(booking.status)}
+                            {booking.status}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Requested {formatDate(booking.createdAt)}
+                          </span>
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
-                        {booking.status}
-                      </span>
                     </div>
 
-                    {booking.message && (
-                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                        <p className="text-sm text-gray-700">
-                          <strong>Message:</strong> {booking.message}
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      {activeTab === "customer" ? (
+                        <>
+                          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
+                            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              Event Details
+                            </h4>
+                            <p className="text-sm text-gray-700 mb-1">
+                              <strong>Event:</strong> {booking.eventId?.title}
+                            </p>
+                            <p className="text-sm text-gray-700 mb-1">
+                              <strong>Date:</strong> {formatDate(booking.eventId?.date)}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Location:</strong> {booking.eventId?.location}
+                            </p>
+                          </div>
+                          <div className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl p-4 border border-pink-100">
+                            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              Vendor
+                            </h4>
+                            <p className="text-sm text-gray-700">
+                              <strong>Business:</strong> {booking.vendorId?.businessName}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
+                            <h4 className="font-semibold text-gray-800 mb-2">Customer Details</h4>
+                            <p className="text-sm text-gray-700 mb-1">
+                              <strong>Name:</strong> {booking.customerId?.name}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Email:</strong> {booking.customerId?.email}
+                            </p>
+                          </div>
+                          <div className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl p-4 border border-pink-100">
+                            <h4 className="font-semibold text-gray-800 mb-2">Event Details</h4>
+                            <p className="text-sm text-gray-700 mb-1">
+                              <strong>Date:</strong> {formatDate(booking.eventId?.date)}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <strong>Location:</strong> {booking.eventId?.location}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {booking.scheduledDate && (
+                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 mb-4 border border-blue-200">
+                        <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Scheduled Service
+                        </h4>
+                        <p className="text-sm text-blue-700 font-semibold">
+                          {formatDate(booking.scheduledDate)}
+                          {booking.scheduledTime && ` at ${booking.scheduledTime}`}
                         </p>
                       </div>
                     )}
 
-                    <div className="text-xs text-gray-500">Requested on {formatDate(booking.createdAt)}</div>
+                    {booking.message && (
+                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                        <h4 className="font-semibold text-gray-800 mb-2">Message</h4>
+                        <p className="text-sm text-gray-700 italic">"{booking.message}"</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
@@ -262,12 +364,64 @@ const BookingManagement = () => {
                       )}
                     </div>
                   )}
+                  <div className="flex flex-col gap-3 lg:min-w-[180px]">
+                    {activeTab === "customer" && (
+                      <>
+                        {(booking.status === "Pending" || booking.status === "Accepted") && (
+                          <button
+                            onClick={() => updateBookingStatus(booking._id, "Cancelled")}
+                            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel Booking
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate(`/vendors/${booking.vendorId._id}`)}
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+                        >
+                          View Vendor
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-8 right-8 z-50 animate-slide-up">
+          <div
+            className={`${
+              toast.type === "success"
+                ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                : "bg-gradient-to-r from-red-500 to-pink-500"
+            } text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px]`}
+          >
+            {toast.type === "success" ? (
+              <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            )}
+            <p className="font-medium">{toast.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

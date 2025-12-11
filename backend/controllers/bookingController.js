@@ -100,21 +100,41 @@ export const getVendorBookings = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params
-    const { status } = req.body
+    const { status, scheduledDate, scheduledTime, note } = req.body
 
-    const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true })
-      .populate("customerId", "name email")
-      .populate("vendorId", "businessName")
-      .populate("serviceId", "description price")
-      .populate("eventId", "title date location")
+    const booking = await Booking.findById(id)
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" })
     }
 
+    // Update status
+    booking.status = status
+
+    // Add to status history
+    booking.statusHistory.push({
+      status,
+      timestamp: new Date(),
+      note: note || `Status changed to ${status}`,
+    })
+
+    // If scheduling, save the date and time
+    if (status === "Scheduled" && scheduledDate) {
+      booking.scheduledDate = scheduledDate
+      booking.scheduledTime = scheduledTime || null
+    }
+
+    await booking.save()
+
+    const updatedBooking = await Booking.findById(id)
+      .populate("customerId", "name email")
+      .populate("vendorId", "businessName")
+      .populate("serviceId", "description price")
+      .populate("eventId", "title date location")
+
     res.json({
       message: `Booking ${status.toLowerCase()} successfully`,
-      booking,
+      booking: updatedBooking,
     })
   } catch (error) {
     console.error("Error updating booking status:", error)

@@ -28,17 +28,35 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "Rejected", "Completed", "Cancelled"],
+      enum: ["Pending", "Accepted", "Rejected", "Scheduled", "In Progress", "Completed", "Cancelled"],
       default: "Pending",
     },
     bookingDate: {
       type: Date,
       default: Date.now,
     },
+    scheduledDate: {
+      type: Date,
+      required: false, // Set when status changes to Scheduled
+    },
+    scheduledTime: {
+      type: String,
+      required: false, // Time in HH:MM format
+    },
     servicePrice: {
       type: Number,
       required: false, // Will be filled if serviceId is provided
     },
+    statusHistory: [
+      {
+        status: String,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+        note: String,
+      },
+    ],
     review: {
       rating: { type: Number, min: 1, max: 5 },
       comment: { type: String },
