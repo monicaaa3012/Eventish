@@ -6,6 +6,7 @@ import { useParams, useNavigate } from "react-router-dom"
 const VendorDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [isRequestSent , setIsRequestSent] = useState (false)
   const [vendor, setVendor] = useState(null)
   const [vendorServices, setVendorServices] = useState([])
   const [userEvents, setUserEvents] = useState([])
@@ -106,6 +107,7 @@ const VendorDetails = () => {
 
       if (response.ok) {
         alert("Booking request sent successfully!")
+        setIsRequestSent(true);
         setShowBookingModal(false)
         setBookingData({ eventId: "", message: "" })
       } else {
@@ -117,6 +119,14 @@ const VendorDetails = () => {
       alert("Network error. Please try again.")
     }
   }
+
+  const handleBookingRequest = async () => {
+    if (isRequestSent){
+      navigate('/bookings');
+      return;
+    }
+    setShowBookingModal(true)
+  };
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -447,13 +457,20 @@ const VendorDetails = () => {
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20">
               <h3 className="text-xl font-bold text-gray-800 mb-4">Book This Vendor</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Send a booking request to connect with this vendor for your event.
+                 {isRequestSent 
+      ? "Your booking request has been sent. Check your bookings for updates."
+      : "Send a booking request to connect with this vendor for your event."
+    }
               </p>
               <button
-                onClick={() => setShowBookingModal(true)}
-                className="w-full bg-primary-gradient text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Send Booking Request
+                  onClick={handleBookingRequest}
+    className={`w-full text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+      isRequestSent 
+        ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700' 
+        : 'bg-primary-gradient transform hover:scale-105 shadow-lg hover:shadow-xl'
+    }`}
+  >
+    {isRequestSent ? 'View My Bookings' : 'Send Booking Request'}
               </button>
             </div>
           </div>
