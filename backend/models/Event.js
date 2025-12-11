@@ -8,9 +8,11 @@ const eventSchema = new mongoose.Schema(
     location: String,
     budget: { type: Number, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    servicesNeeded: [{ type: String }],
+
+    // Updated to match frontend
+    requirements: [{ type: String }],
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 export default mongoose.model("Event", eventSchema)
