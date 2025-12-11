@@ -19,6 +19,8 @@ import VendorProfile from "./pages/Vendor/VendorProfile"
 import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
 import UserDetails from "./pages/customer/UserDetails"
 import EditService from "./pages/Vendor/AddService/EditService" // Add this import
+import LeaveReview from "./pages/LeaveReview"
+import VendorMyReviews from "./pages/Vendor/VeondorMyReviews"
 
 const App = () => {
   return (
@@ -30,6 +32,10 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/bookings/:bookingId/review" element={<LeaveReview />} />
+
+
+
 
           {/* Protected Routes */}
           <Route
@@ -155,6 +161,23 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/vendor/my-reviews"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <VendorMyReviews />
+              </ProtectedRoute>
+            }
+          />
+         <Route
+          path="/vendor/my-reviews" 
+          element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <VendorMyReviews />
+              </ProtectedRoute>
+            }
+          />
+          
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />

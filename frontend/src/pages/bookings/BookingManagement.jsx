@@ -245,13 +245,21 @@ const BookingManagement = () => {
                   )}
 
                   {activeTab === "customer" && (
-                    <div className="mt-4 lg:mt-0 lg:ml-6">
+                    <div className="flex space-x-3 mt-4 lg:mt-0 lg:ml-6">
                       <button
                         onClick={() => navigate(`/vendors/${booking.vendorId._id}`)}
                         className="bg-primary-gradient text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
                       >
                         View Vendor
                       </button>
+                      {booking.status === "Completed" && (
+                        <button
+                          onClick={() => navigate(`/bookings/${booking._id}/review`)}
+                          className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                        >
+                          Leave Review
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

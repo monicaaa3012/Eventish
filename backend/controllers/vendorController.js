@@ -194,3 +194,5 @@ export const getVendorLocations = async (req, res) => {
     res.status(500).json({ message: "Error fetching locations", error: error.message })
   }
 }
+
+// Review functionality has been moved to reviewController.js

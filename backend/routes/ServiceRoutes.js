@@ -3,7 +3,7 @@ import multer from "multer"
 import path from "path"
 import fs from "fs"
 import Service from "../models/ServiceModel.js"
-import authMiddleware from "../middleware/authMiddleware.js"
+import protect from "../middleware/authMiddleware.js"
 import { fileURLToPath } from "url"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -201,11 +201,11 @@ const deleteService = async (req, res) => {
 }
 
 // Routes
-router.post("/add", authMiddleware, upload.array("images", 4), addService)
+router.post("/add", protect, upload.array("images", 4), addService)
 router.get("/", getAllServices)
-router.get("/my-services", authMiddleware, getUserServices)
+router.get("/my-services", protect, getUserServices)
 router.get("/:id", getServiceById)
-router.put("/:id", authMiddleware, upload.array("images", 4), updateService)
-router.delete("/:id", authMiddleware, deleteService)
+router.put("/:id", protect, upload.array("images", 4), updateService)
+router.delete("/:id", protect, deleteService)
 
 export default router

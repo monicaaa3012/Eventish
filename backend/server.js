@@ -11,7 +11,8 @@ import eventRoutes from "./routes/eventRoutes.js"
 import vendorRoutes from "./routes/vendorRoutes.js"
 import serviceRoutes from "./routes/ServiceRoutes.js"
 import bookingRoutes from "./routes/bookingRoutes.js"
-import recommendationRoutes from "./routes/recommendationRoutes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js"
+// import reviewRoutes from "./routes/reviewRoutes.js"
 // ES Module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -41,7 +42,8 @@ app.use("/api/events", eventRoutes)
 app.use("/api/vendors", vendorRoutes)
 app.use("/api/services", serviceRoutes)
 app.use("/api/bookings", bookingRoutes)
-app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/recommendations", recommendationRoutes)
+// app.use("/api/reviews", reviewRoutes)
 
 // Error handling middleware
 app.use((error, req, res, next) => {

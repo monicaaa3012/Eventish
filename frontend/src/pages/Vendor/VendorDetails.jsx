@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import ReviewsList from "../../components/ReviewsList"
 
 const VendorDetails = () => {
   const { id } = useParams()
@@ -16,6 +17,8 @@ const VendorDetails = () => {
     eventId: "",
     message: "",
   })
+  // Reviews are now handled by ReviewsList component
+
 
   useEffect(() => {
     fetchVendorDetails()
@@ -54,6 +57,8 @@ const VendorDetails = () => {
       setServicesLoading(false)
     }
   }
+
+  // Reviews fetching is now handled by ReviewsList component
 
   // Re-fetch services when vendor data is loaded
   useEffect(() => {
@@ -230,6 +235,12 @@ const VendorDetails = () => {
                 </div>
               )}
             </div>
+
+            {/* Reviews Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-8 border border-white/20">
+              <ReviewsList vendorId={id} />
+            </div>
+
 
             {/* Services Offered Card */}
             <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-8 border border-white/20">
