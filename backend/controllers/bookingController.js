@@ -142,6 +142,66 @@ export const updateBookingStatus = async (req, res) => {
   }
 }
 
+// Confirm vendor with payment method
+export const confirmVendorWithPayment = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { paymentMethod } = req.body
+
+    const booking = await Booking.findById(id)
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" })
+    }
+
+    // Check if the booking belongs to the current user
+    if (booking.customerId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to confirm this booking" })
+    }
+
+    // Check if booking is in scheduled status
+    if (booking.status !== "Scheduled") {
+      return res.status(400).json({ message: "Booking must be scheduled before confirmation" })
+    }
+
+    // Update booking with payment method and confirmation
+    booking.paymentMethod = paymentMethod
+    booking.vendorConfirmed = true
+    booking.status = "Completed"
+    
+    // If cash payment, mark as completed immediately
+    if (paymentMethod === "cash") {
+      booking.paymentStatus = "completed"
+    } else {
+      // For online payment, keep as pending (would integrate with payment gateway)
+      booking.paymentStatus = "pending"
+    }
+
+    // Add to status history
+    booking.statusHistory.push({
+      status: "Completed",
+      timestamp: new Date(),
+      note: `Booking completed with ${paymentMethod} payment`,
+    })
+
+    await booking.save()
+
+    const updatedBooking = await Booking.findById(id)
+      .populate("customerId", "name email")
+      .populate("vendorId", "businessName")
+      .populate("serviceId", "description price")
+      .populate("eventId", "title date location")
+
+    res.json({
+      message: `Booking completed with ${paymentMethod} payment`,
+      booking: updatedBooking,
+    })
+  } catch (error) {
+    console.error("Error confirming vendor:", error)
+    res.status(500).json({ message: "Error confirming vendor", error: error.message })
+  }
+}
+
 // Get all bookings (admin)
 export const getAllBookings = async (req, res) => {
   try {
