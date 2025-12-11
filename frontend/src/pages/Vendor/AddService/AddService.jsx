@@ -10,6 +10,7 @@ const AddService = () => {
   const [imagePreviews, setImagePreviews] = useState([])
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
+   const [serviceType, setServiceType] = useState("") 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -129,6 +130,7 @@ const AddService = () => {
 
     formData.append("description", description)
     formData.append("price", price)
+     formData.append("serviceType", serviceType)
 
     // Debug: Log FormData contents
     console.log("FormData contents:")
@@ -161,6 +163,7 @@ const AddService = () => {
       setImagePreviews([])
       setDescription("")
       setPrice("")
+      setServiceType("")
 
       // Reset file inputs
       const fileInputs = document.querySelectorAll('input[type="file"]')
@@ -308,6 +311,27 @@ const AddService = () => {
                   </div>
                 </div>
               )}
+            </div>
+ <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Service Category
+              </label>
+
+              <select
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl 
+                bg-white/80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+                transition-all duration-300"
+              >
+                <option value="">Choose a service</option>
+                <option value="catering">Catering</option>
+                <option value="decoration">Decoration</option>
+                <option value="photography">Photography</option>
+                <option value="music">Music</option>
+                <option value="makeup">Makeup</option>
+              </select>
             </div>
 
             {/* Description */}
