@@ -8,10 +8,10 @@ const addService = async (req, res) => {
     }
 
     const imagePaths = req.files.map((file) => file.path)
-    const { description, price } = req.body
+    const { description, price, serviceType } = req.body
 
-    if (!description || !price) {
-      return res.status(400).json({ error: "Description and price are required" })
+    if (!description || !price || !serviceType) {
+      return res.status(400).json({ error: "Description, price, and service type are required" })
     }
 
     const numericPrice = Number.parseFloat(price)
@@ -23,6 +23,7 @@ const addService = async (req, res) => {
       images: imagePaths,
       description,
       price: numericPrice,
+      serviceType,
       createdBy: req.user.id,
     })
 
@@ -60,4 +61,95 @@ const getUserServices = async (req, res) => {
   }
 }
 
-export { addService, getAllServices, getUserServices }
+// Get single service by ID
+const getServiceById = async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id)
+    
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" })
+    }
+
+    // Check if user owns this service
+    if (service.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: "You don't have permission to access this service" })
+    }
+
+    res.json(service)
+  } catch (err) {
+    console.error("Error fetching service:", err)
+    res.status(500).json({ error: "Failed to fetch service" })
+  }
+}
+
+// Update service
+const updateService = async (req, res) => {
+  try {
+    const { description, price, serviceType } = req.body
+    const serviceId = req.params.id
+
+    if (!description || !price || !serviceType) {
+      return res.status(400).json({ error: "Description, price, and service type are required" })
+    }
+
+    const numericPrice = Number.parseFloat(price)
+    if (isNaN(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({ error: "Price must be a valid positive number" })
+    }
+
+    const service = await Service.findById(serviceId)
+    
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" })
+    }
+
+    // Check if user owns this service
+    if (service.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: "You don't have permission to update this service" })
+    }
+
+    const updatedService = await Service.findByIdAndUpdate(
+      serviceId,
+      {
+        description,
+        price: numericPrice,
+        serviceType,
+      },
+      { new: true }
+    )
+
+    res.json({
+      message: "Service updated successfully",
+      service: updatedService,
+    })
+  } catch (err) {
+    console.error("Error updating service:", err)
+    res.status(500).json({ error: "Failed to update service" })
+  }
+}
+
+// Delete service
+const deleteService = async (req, res) => {
+  try {
+    const serviceId = req.params.id
+    const service = await Service.findById(serviceId)
+    
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" })
+    }
+
+    // Check if user owns this service
+    if (service.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: "You don't have permission to delete this service" })
+    }
+
+    await Service.findByIdAndDelete(serviceId)
+
+    res.json({ message: "Service deleted successfully" })
+  } catch (err) {
+    console.error("Error deleting service:", err)
+    res.status(500).json({ error: "Failed to delete service" })
+  }
+}
+
+export { addService, getAllServices, getUserServices, getServiceById, updateService, deleteService }

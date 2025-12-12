@@ -25,10 +25,10 @@ const Header = () => {
           <p className="text-xl md:text-2xl text-purple-100 mb-8 max-w-2xl mx-auto leading-relaxed">
             Where extraordinary events come to life through seamless planning and unforgettable experiences
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {/* <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button className="btn-eventish text-lg px-8 py-4 animate-pulse-glow">Start Planning Today</button>
             
-          </div>
+          </div> */}
         </div>
       </div>
 

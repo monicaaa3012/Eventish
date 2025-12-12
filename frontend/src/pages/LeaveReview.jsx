@@ -75,6 +75,8 @@ const LeaveReview = () => {
 
       if (response.ok) {
         alert("Review submitted successfully!")
+        // Trigger a storage event to notify other components to refresh
+        window.dispatchEvent(new Event('reviewAdded'))
         navigate(-1)
       } else {
         const errorData = await response.json()

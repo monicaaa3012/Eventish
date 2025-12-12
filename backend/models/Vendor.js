@@ -14,8 +14,6 @@ const vendorSchema = new mongoose.Schema(
       min: { type: Number, required: true },
       max: { type: Number, required: true },
     },
-    rating: { type: Number, default: 5.0, min: 1, max: 5 },
-    reviewCount: { type: Number, default: 0 },
     portfolio: [String],
     availability: [
       {
@@ -23,6 +21,18 @@ const vendorSchema = new mongoose.Schema(
         isAvailable: { type: Boolean, default: true },
       },
     ],
+    // Review fields
+    reviews: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        rating: { type: Number, required: true, min: 1, max: 5 },
+        comment: { type: String, required: true },
+        date: { type: Date, default: Date.now },
+        bookingId: { type: mongoose.Schema.Types.ObjectId, ref: "Booking" }
+      }
+    ],
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    reviewCount: { type: Number, default: 0 },
     contactInfo: {
       phone: String,
       email: String,

@@ -99,7 +99,7 @@ const ServiceDetails = () => {
                 {!imageError ? (
                   <img
                     src={getImageUrl(service.images[currentImageIndex])}
-                    alt={`${service.title} - Image ${currentImageIndex + 1}`}
+                    alt={`${service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) + " Service" : "Service"} - Image ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
                   />
@@ -203,11 +203,11 @@ const ServiceDetails = () => {
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
                 <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                  {service.title || "Service Details"}
+                  {service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) + " Service" : "Service Details"}
                 </h1>
-                {service.category && (
+                {service.serviceType && (
                   <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                    {service.category}
+                    {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)}
                   </span>
                 )}
               </div>
