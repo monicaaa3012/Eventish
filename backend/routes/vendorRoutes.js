@@ -9,6 +9,7 @@ import {
   getVendorLocations,
   getVendorByUserId,
 } from "../controllers/vendorController.js"
+import { getMyReviews } from "../controllers/reviewController.js"
 import authMiddleware from "../middleware/authMiddleware.js"
 
 const router = express.Router()
@@ -20,6 +21,7 @@ router.get("/locations", getVendorLocations)
 
 // Protected routes - put /me before /:id to avoid conflicts
 router.get("/me", authMiddleware, getVendorProfile)
+router.get("/my-reviews", authMiddleware, getMyReviews)
 router.post("/", authMiddleware, createVendorProfile)
 router.put("/profile", authMiddleware, updateVendorProfile)
 

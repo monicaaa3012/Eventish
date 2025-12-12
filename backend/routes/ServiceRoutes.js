@@ -49,11 +49,11 @@ const addService = async (req, res) => {
     }
 
     const imagePaths = req.files.map((file) => file.path)
-    const { description, price } = req.body
+    const { description, price, serviceType } = req.body
 
     // Validate required fields
-    if (!description || !price) {
-      return res.status(400).json({ error: "Description and price are required" })
+    if (!description || !price || !serviceType) {
+      return res.status(400).json({ error: "Description, price, and service type are required" })
     }
 
     // Validate price
@@ -66,6 +66,7 @@ const addService = async (req, res) => {
       images: imagePaths,
       description,
       price: numericPrice,
+      serviceType,
       createdBy: req.user.id,
     })
 
@@ -134,7 +135,7 @@ const updateService = async (req, res) => {
       return res.status(403).json({ error: "Not authorized to update this service" })
     }
 
-    const { title, description, price, category } = req.body
+    const { title, description, price, category, serviceType } = req.body
 
     // Validate price if provided
     if (price !== undefined) {
@@ -149,6 +150,7 @@ const updateService = async (req, res) => {
     if (title !== undefined) service.title = title
     if (description !== undefined) service.description = description
     if (category !== undefined) service.category = category
+    if (serviceType !== undefined) service.serviceType = serviceType
 
     // Handle new image uploads if any
     if (req.files && req.files.length > 0) {

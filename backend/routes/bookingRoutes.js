@@ -6,7 +6,6 @@ import {
   getCurrentVendorBookings,
   getVendorBookings,
   updateBookingStatus,
-  confirmVendorWithPayment,
   getAllBookings,
 } from "../controllers/bookingController.js"
 
@@ -26,9 +25,6 @@ router.get("/vendor/:vendorId", authMiddleware, getVendorBookings)
 
 // Update booking status
 router.put("/:id/status", authMiddleware, updateBookingStatus)
-
-// Confirm vendor with payment
-router.put("/:id/confirm-vendor", authMiddleware, confirmVendorWithPayment)
 
 // Get all bookings (admin)
 router.get("/all", authMiddleware, getAllBookings)

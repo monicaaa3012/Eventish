@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
+
 
 const VendorDashboard = () => {
   const navigate = useNavigate()
@@ -159,6 +161,22 @@ const VendorDashboard = () => {
       ),
       color: "from-green-500 to-teal-500",
       action: () => navigate("/vendor/manage-bookings"),
+    },
+    {
+      title: "My Reviews",
+      description: "View customer reviews and feedback",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+          />
+        </svg>
+      ),
+      color: "from-pink-500 to-rose-500",
+      action: () => navigate("/vendor/my-reviews"),
     },
     {
       title: "View Analytics",
@@ -416,38 +434,40 @@ const VendorDashboard = () => {
                       </div>
 
                       <div className="flex space-x-2 pt-4">
-  <button
-    onClick={(e) => {
-      e.stopPropagation()
-      e.preventDefault()
-      handleViewDetails(service._id)
-    }}
-    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
-  >
-    Details
-  </button>
-  <button
-    onClick={(e) => {
+                    <button
+                      onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handleViewDetails(service._id)
+                   }}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
+                   >
+                    Details
+                   </button>
+                     <button
+                      onClick={(e) => {
       
-      e.stopPropagation()
-      e.preventDefault()
-      handleEditService(service._id)
-    }}
-    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
-  >
-    Edit
-  </button>
-  <button
-    onClick={(e) => {
-      e.stopPropagation()
-      e.preventDefault()
-      handleDeleteService(service._id)
-    }}
-    className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
-  >
-    Delete
-  </button>
-</div>
+                     e.stopPropagation()
+                     e.preventDefault()
+                    handleEditService(service._id)
+                   }}
+                    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
+                    >
+                     Edit
+                    </button>
+                    <button
+                     onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handleDeleteService(service._id)
+                    }}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 shadow-md hover:shadow-lg"
+                >
+                      Delete
+                    </button>
+
+
+                   </div>
                     </div>
                   </div>
                 </div>

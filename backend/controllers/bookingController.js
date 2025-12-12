@@ -142,66 +142,6 @@ export const updateBookingStatus = async (req, res) => {
   }
 }
 
-// Confirm vendor with payment method
-export const confirmVendorWithPayment = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { paymentMethod } = req.body
-
-    const booking = await Booking.findById(id)
-
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" })
-    }
-
-    // Check if the booking belongs to the current user
-    if (booking.customerId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized to confirm this booking" })
-    }
-
-    // Check if booking is in scheduled status
-    if (booking.status !== "Scheduled") {
-      return res.status(400).json({ message: "Booking must be scheduled before confirmation" })
-    }
-
-    // Update booking with payment method and confirmation
-    booking.paymentMethod = paymentMethod
-    booking.vendorConfirmed = true
-    booking.status = "Completed"
-    
-    // If cash payment, mark as completed immediately
-    if (paymentMethod === "cash") {
-      booking.paymentStatus = "completed"
-    } else {
-      // For online payment, keep as pending (would integrate with payment gateway)
-      booking.paymentStatus = "pending"
-    }
-
-    // Add to status history
-    booking.statusHistory.push({
-      status: "Completed",
-      timestamp: new Date(),
-      note: `Booking completed with ${paymentMethod} payment`,
-    })
-
-    await booking.save()
-
-    const updatedBooking = await Booking.findById(id)
-      .populate("customerId", "name email")
-      .populate("vendorId", "businessName")
-      .populate("serviceId", "description price")
-      .populate("eventId", "title date location")
-
-    res.json({
-      message: `Booking completed with ${paymentMethod} payment`,
-      booking: updatedBooking,
-    })
-  } catch (error) {
-    console.error("Error confirming vendor:", error)
-    res.status(500).json({ message: "Error confirming vendor", error: error.message })
-  }
-}
-
 // Get all bookings (admin)
 export const getAllBookings = async (req, res) => {
   try {
@@ -216,5 +156,116 @@ export const getAllBookings = async (req, res) => {
   } catch (error) {
     console.error("Error fetching all bookings:", error)
     res.status(500).json({ message: "Error fetching bookings", error: error.message })
+  }
+}
+
+// Get single booking by ID
+export const getBookingById = async (req, res) => {
+  try {
+    const bookingId = req.params.id
+    const userId = req.user.id
+
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "name email")
+      .populate("vendorId", "businessName")
+      .populate("serviceId", "description price")
+      .populate("eventId", "title date location")
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" })
+    }
+
+    // Check if user has permission to view this booking
+    const vendor = await Vendor.findOne({ userId })
+    const isCustomer = booking.customerId._id.toString() === userId
+    const isVendor = vendor && booking.vendorId._id.toString() === vendor._id.toString()
+
+    if (!isCustomer && !isVendor) {
+      return res.status(403).json({ message: "You don't have permission to view this booking" })
+    }
+
+    res.json(booking)
+  } catch (error) {
+    console.error("Error fetching booking:", error)
+    res.status(500).json({ message: "Error fetching booking", error: error.message })
+  }
+}
+
+// Add review to a booking
+export const addBookingReview = async (req, res) => {
+  try {
+    const bookingId = req.params.id
+    const { rating, comment } = req.body
+    const userId = req.user.id
+
+    // Validate input
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" })
+    }
+
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ message: "Comment is required" })
+    }
+
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "name email")
+      .populate("vendorId", "businessName")
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" })
+    }
+
+    // Check if user is the customer for this booking
+    if (booking.customerId._id.toString() !== userId) {
+      return res.status(403).json({ message: "Only the customer can review this booking" })
+    }
+
+    // Check if booking is completed
+    if (booking.status !== "Completed") {
+      return res.status(400).json({ message: "You can only review completed bookings" })
+    }
+
+    // Check if review already exists
+    if (booking.review) {
+      return res.status(400).json({ message: "You have already reviewed this booking" })
+    }
+
+    // Add review to booking
+    booking.review = {
+      rating: Number(rating),
+      comment: comment.trim(),
+      date: new Date()
+    }
+
+    await booking.save()
+
+    // Also add review to vendor's reviews array
+    const vendor = await Vendor.findById(booking.vendorId._id)
+    if (vendor) {
+      const newReview = {
+        user: userId,
+        rating: Number(rating),
+        comment: comment.trim(),
+        date: new Date(),
+        bookingId: bookingId
+      }
+
+      vendor.reviews.push(newReview)
+
+      // Recalculate average rating
+      const totalRating = vendor.reviews.reduce((sum, review) => sum + review.rating, 0)
+      vendor.rating = totalRating / vendor.reviews.length
+      vendor.reviewCount = vendor.reviews.length
+
+      await vendor.save()
+    }
+
+    res.status(201).json({ 
+      message: "Review added successfully",
+      review: booking.review
+    })
+  } catch (error) {
+    console.error("Error adding review:", error)
+    res.status(500).json({ message: "Error adding review", error: error.message })
   }
 }
