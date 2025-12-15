@@ -6,6 +6,7 @@ import {
   getCurrentVendorBookings,
   getVendorBookings,
   updateBookingStatus,
+  confirmVendorWithPayment,
   getAllBookings,
   getBookingById,
   addBookingReview,
@@ -27,6 +28,9 @@ router.get("/vendor/:vendorId", protect, getVendorBookings)
 
 // Update booking status
 router.put("/:id/status", protect, updateBookingStatus)
+
+// Confirm vendor with payment
+router.put("/:id/confirm-vendor", protect, confirmVendorWithPayment)
 
 // Get all bookings (admin)
 router.get("/all", protect, getAllBookings)
