@@ -2,9 +2,9 @@ import Event from "../models/Event.js"
 
 export const createEvent = async (req, res) => {
   try {
-    const { title, description, date, location, budget } = req.body
+    const { title, description, date, location, budget, eventType, requirements } = req.body
 
-    console.log("Creating event with data:", { title, description, date, location, budget, createdBy: req.user.id })
+    console.log("Creating event with data:", { title, description, date, location, budget, eventType, requirements, createdBy: req.user.id })
 
     const event = new Event({
       title,
@@ -12,6 +12,8 @@ export const createEvent = async (req, res) => {
       date,
       location,
       budget,
+      eventType,
+      requirements: requirements || [],
       createdBy: req.user.id,
     })
 
@@ -49,7 +51,7 @@ export const getUserEvents = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, description, date, location, budget } = req.body
+    const { title, description, date, location, budget, eventType, requirements } = req.body
 
     const event = await Event.findById(id)
     if (!event) {
@@ -63,7 +65,7 @@ export const updateEvent = async (req, res) => {
 
     const updatedEvent = await Event.findByIdAndUpdate(
       id,
-      { title, description, date, location, budget },
+      { title, description, date, location, budget, eventType, requirements },
       { new: true },
     ).populate("createdBy", "name email")
 

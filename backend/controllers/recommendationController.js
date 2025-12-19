@@ -107,8 +107,8 @@ export const getJaccardRecommendations = async (req, res) => {
     // 2. Enhanced preference extraction with weights
     const userPreferences = extractEnhancedUserPreferences(userEvents)
     
-    // 3. Get all vendors with their services
-    const vendors = await Vendor.find()
+    // 3. Get only verified vendors with their services
+    const vendors = await Vendor.find({ verified: true })
     const vendorRecommendations = []
     const similarityScores = {}
     const analysisDetails = {
@@ -116,7 +116,8 @@ export const getJaccardRecommendations = async (req, res) => {
       selectedEventTitles: userEvents.map(e => e.title),
       extractedPreferences: Array.from(userPreferences.features),
       preferenceWeights: userPreferences.weights,
-      totalVendorsAnalyzed: vendors.length
+      totalVendorsAnalyzed: vendors.length,
+      onlyVerifiedVendors: true
     }
 
     // 4. Calculate enhanced similarity for each vendor
@@ -124,16 +125,26 @@ export const getJaccardRecommendations = async (req, res) => {
       // Get vendor's services
       const vendorServices = await Service.find({ createdBy: vendor.userId })
       
-      if (vendorServices.length === 0) continue // Skip vendors with no services
+      console.log(`Vendor ${vendor.businessName}: ${vendorServices.length} services`)
+      
+      if (vendorServices.length === 0) {
+        console.log(`Skipping vendor ${vendor.businessName} - no services`)
+        continue // Skip vendors with no services
+      }
       
       // Extract vendor features with categories
       const vendorFeatures = extractEnhancedVendorFeatures(vendor, vendorServices)
       
+      console.log(`User preferences:`, Array.from(userPreferences.features))
+      console.log(`Vendor ${vendor.businessName} features:`, Array.from(vendorFeatures.features))
+      
       // Calculate weighted Jaccard similarity
       const similarity = calculateWeightedJaccardSimilarity(userPreferences, vendorFeatures)
       
-      // Only include vendors with meaningful similarity (> 0.1)
-      if (similarity > 0.1) {
+      console.log(`Vendor ${vendor.businessName} similarity: ${similarity}`)
+      
+      // Only include vendors with any similarity (> 0.01)
+      if (similarity > 0.01) {
         vendorRecommendations.push({
           ...vendor.toObject(),
           similarity,
@@ -179,12 +190,19 @@ const extractEnhancedUserPreferences = (events) => {
   }
   
   events.forEach(event => {
-    // Event types (high weight)
+    // Event types (high weight) - map to service categories
     if (event.eventType) {
       const eventType = event.eventType.toLowerCase()
-      features.add(`type:${eventType}`)
+      features.add(`event:${eventType}`)
       categories.eventTypes.add(eventType)
-      weights[`type:${eventType}`] = (weights[`type:${eventType}`] || 0) + 3
+      weights[`event:${eventType}`] = (weights[`event:${eventType}`] || 0) + 3
+      
+      // Map event types to likely service needs
+      const serviceMapping = getServiceMappingForEvent(eventType)
+      serviceMapping.forEach(serviceType => {
+        features.add(`service:${serviceType}`)
+        weights[`service:${serviceType}`] = (weights[`service:${serviceType}`] || 0) + 2
+      })
     }
     
     // Locations (medium weight)
@@ -195,13 +213,15 @@ const extractEnhancedUserPreferences = (events) => {
       weights[`location:${location}`] = (weights[`location:${location}`] || 0) + 2
     }
     
-    // Requirements (high weight)
+    // Requirements (high weight) - these directly match service types
     if (event.requirements && Array.isArray(event.requirements)) {
       event.requirements.forEach(req => {
         const requirement = req.toLowerCase()
         features.add(`requirement:${requirement}`)
+        features.add(`service:${requirement}`) // Also add as service type
         categories.requirements.add(requirement)
         weights[`requirement:${requirement}`] = (weights[`requirement:${requirement}`] || 0) + 3
+        weights[`service:${requirement}`] = (weights[`service:${requirement}`] || 0) + 3
       })
     }
     
@@ -218,6 +238,24 @@ const extractEnhancedUserPreferences = (events) => {
   return { features, weights, categories }
 }
 
+// Map event types to likely service types needed
+const getServiceMappingForEvent = (eventType) => {
+  const mappings = {
+    'wedding': ['catering', 'decoration', 'photography', 'music', 'makeup'],
+    'birthday party': ['catering', 'decoration', 'photography', 'music'],
+    'corporate event': ['catering', 'photography'],
+    'anniversary': ['catering', 'decoration', 'photography', 'music'],
+    'baby shower': ['catering', 'decoration', 'photography'],
+    'graduation': ['catering', 'decoration', 'photography'],
+    'holiday party': ['catering', 'decoration', 'music'],
+    'conference': ['catering', 'photography'],
+    'workshop': ['catering'],
+    'other': ['catering', 'decoration', 'photography']
+  }
+  
+  return mappings[eventType] || ['catering', 'decoration', 'photography']
+}
+
 // Enhanced vendor feature extraction
 const extractEnhancedVendorFeatures = (vendor, services) => {
   const features = new Set()
@@ -231,8 +269,8 @@ const extractEnhancedVendorFeatures = (vendor, services) => {
   services.forEach(service => {
     if (service.serviceType) {
       const serviceType = service.serviceType.toLowerCase()
-      features.add(`type:${serviceType}`)
       features.add(`service:${serviceType}`)
+      features.add(`requirement:${serviceType}`) // Also add as requirement match
       categories.serviceTypes.add(serviceType)
     }
     
@@ -324,8 +362,8 @@ export const getRecommendations = async (req, res) => {
       ...(latestEvent.requirements || []).map(r => r.toLowerCase()),
     ])
 
-    // Get all vendors
-    const vendors = await Vendor.find()
+    // Get only verified vendors
+    const vendors = await Vendor.find({ verified: true })
 
     // Compute similarity
     const results = vendors.map(vendor => {

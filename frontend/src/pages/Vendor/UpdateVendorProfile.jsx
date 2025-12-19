@@ -81,13 +81,29 @@ const UpdateVendorProfile = () => {
 
     try {
       const token = localStorage.getItem("token")
+      
+      // Filter out fields that don't belong to Vendor model
+      const vendorUpdateData = {
+        businessName: vendorData.businessName,
+        companyName: vendorData.companyName,
+        bio: vendorData.bio,
+        profileImage: vendorData.profileImage,
+        description: vendorData.description,
+        services: vendorData.services,
+        location: vendorData.location,
+        priceRange: vendorData.priceRange,
+        contactInfo: vendorData.contactInfo,
+      }
+      
+      console.log("Sending vendor update data:", vendorUpdateData)
+      
       const response = await fetch("/api/vendors/profile", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(vendorData),
+        body: JSON.stringify(vendorUpdateData),
       })
 
       if (response.ok) {
@@ -95,6 +111,7 @@ const UpdateVendorProfile = () => {
         navigate("/vendor/dashboard")
       } else {
         const errorData = await response.json()
+        console.error("Server error:", errorData)
         setError(errorData.message || "Failed to update profile")
       }
     } catch (error) {

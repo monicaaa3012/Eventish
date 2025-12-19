@@ -293,10 +293,10 @@ const VendorBrowse = () => {
             <p className="text-gray-600 mb-4">
               {Object.values(filters).some(filter => filter) 
                 ? "Try adjusting your filters to find more vendors." 
-                : "No vendors have completed their profiles yet."}
+                : "No verified vendors match your criteria yet."}
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              Total vendors in database: {pagination.total}
+              Showing only verified vendors: {pagination.total}
             </p>
             <div className="space-x-4">
               <button
@@ -334,11 +334,16 @@ const VendorBrowse = () => {
                           </span>
                         </div>
                       </div>
-                      {vendor.featured && (
-                        <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-medium">
-                          Featured
+                      <div className="flex flex-col gap-1">
+                        <span className="bg-gradient-to-r from-green-400 to-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          ✓ Verified
                         </span>
-                      )}
+                        {vendor.featured && (
+                          <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            ⭐ Featured
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <p className="text-gray-600 mb-4 line-clamp-3">

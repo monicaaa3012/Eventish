@@ -11,18 +11,32 @@ const CreateEvent = () => {
     date: "",
     location: "",
     budget: "",
+    eventType: "",
     requirements: [],
   })
 
   const [loading, setLoading] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  const options = [
+  const requirementOptions = [
     "Catering",
     "Decoration",
     "Photography",
     "Music",
     "Makeup",
+  ]
+
+  const eventTypeOptions = [
+    "Wedding",
+    "Birthday Party",
+    "Corporate Event",
+    "Anniversary",
+    "Baby Shower",
+    "Graduation",
+    "Holiday Party",
+    "Conference",
+    "Workshop",
+    "Other"
   ]
 
   const toggleRequirement = (req) => {
@@ -119,6 +133,27 @@ const CreateEvent = () => {
             />
           </div>
 
+          {/* EVENT TYPE */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Event Type
+            </label>
+            <select
+              name="eventType"
+              value={formData.eventType}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
+              required
+            >
+              <option value="">Select event type</option>
+              {eventTypeOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* DESCRIPTION */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -201,7 +236,7 @@ const CreateEvent = () => {
 
             {dropdownOpen && (
               <div className="absolute mt-2 w-full bg-white shadow-lg rounded-xl border p-3 z-20">
-                {options.map((opt) => (
+                {requirementOptions.map((opt) => (
                   <label
                     key={opt}
                     className="flex items-center gap-3 px-2 py-2 hover:bg-purple-50 rounded-lg cursor-pointer"

@@ -202,7 +202,7 @@ const VendorRecommendation = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={fetchRecommendations}
+                onClick={() => fetchRecommendations()}
                 className="bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-300"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,9 +235,13 @@ const VendorRecommendation = () => {
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-8 border border-white/20">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Select Events for Analysis</h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Choose which events you'd like us to analyze for personalized vendor recommendations
               </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                <strong>💡 Pro Tip:</strong> Events with specific requirements (Catering, Decoration, Photography, etc.) 
+                and clear locations get better vendor matches!
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -327,43 +331,87 @@ const VendorRecommendation = () => {
           </div>
         )}
 
-        {/* Algorithm Info */}
+        {/* Algorithm Info & Tips */}
         {!showEventSelection && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-8 border border-blue-200">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
+          <div className="space-y-6 mb-8">
+            {/* Algorithm Explanation */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Enhanced Jaccard Similarity Analysis</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                    Our AI analyzes your events using <strong>weighted Jaccard similarity</strong> to find the best vendor matches. 
+                    We intelligently map event types to service needs and consider locations, requirements, and keywords.
+                    <strong> Only verified vendors</strong> are included in recommendations.
+                  </p>
+                  {analysisDetails && (
+                    <div className="bg-white/50 rounded-lg p-3 text-xs">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div><strong>Events Analyzed:</strong> {analysisDetails.eventsAnalyzed}</div>
+                        <div><strong>Vendors Scanned:</strong> {analysisDetails.totalVendorsAnalyzed}</div>
+                        <div><strong>Preferences Found:</strong> {analysisDetails.extractedPreferences?.length || 0}</div>
+                        <div><strong>Matches Found:</strong> {recommendations.length}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleBackToSelection}
+                  className="bg-white/80 hover:bg-white text-purple-600 px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                >
+                  Change Events
+                </button>
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Enhanced Jaccard Similarity Analysis</h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-3">
-                  Our advanced algorithm analyzes your selected events using <strong>weighted Jaccard similarity</strong> to find the best vendor matches. 
-                  We consider event types, locations, requirements, and keywords with different importance levels.
-                </p>
-                {analysisDetails && (
-                  <div className="bg-white/50 rounded-lg p-3 text-xs">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div><strong>Events Analyzed:</strong> {analysisDetails.eventsAnalyzed}</div>
-                      <div><strong>Vendors Scanned:</strong> {analysisDetails.totalVendorsAnalyzed}</div>
-                      <div><strong>Preferences Found:</strong> {analysisDetails.extractedPreferences?.length || 0}</div>
-                      <div><strong>Matches Found:</strong> {recommendations.length}</div>
+            </div>
+
+            {/* Tips for Better Matches */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-md font-semibold text-gray-800 mb-3">💡 Tips for Better Recommendations</h4>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                      <h5 className="font-medium text-green-700 mb-2">📝 When Creating Events:</h5>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Choose specific event types (Wedding, Birthday Party, etc.)</li>
+                        <li>• Add detailed requirements (Catering, Decoration, Photography, Music, Makeup)</li>
+                        <li>• Include your city/location for local vendor matches</li>
+                        <li>• Use descriptive titles and descriptions</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-green-700 mb-2">🎯 How Matching Works:</h5>
+                      <ul className="space-y-1 text-xs">
+                        <li>• <strong>Event Type:</strong> Wedding → matches catering, decoration, photography</li>
+                        <li>• <strong>Requirements:</strong> Direct match with vendor service types</li>
+                        <li>• <strong>Location:</strong> Matches vendors in same area</li>
+                        <li>• <strong>Keywords:</strong> From event titles and descriptions</li>
+                      </ul>
                     </div>
                   </div>
-                )}
+                  <div className="mt-4 p-3 bg-white/60 rounded-lg">
+                    <p className="text-xs text-gray-600">
+                      <strong>Example:</strong> A "Wedding" event with requirements ["Catering", "Photography"] in "New York" 
+                      will match vendors offering catering/photography services in New York with high similarity scores.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={handleBackToSelection}
-                className="bg-white/80 hover:bg-white text-purple-600 px-4 py-2 rounded-lg font-medium transition-all duration-300"
-              >
-                Change Events
-              </button>
             </div>
           </div>
         )}
@@ -444,16 +492,21 @@ const VendorRecommendation = () => {
                         <div className={`px-3 py-1 rounded-full text-sm font-semibold ${similarityColorClass}`}>
                           {similarityPercentage}% Match
                         </div>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                            />
-                          </svg>
-                          AI Recommended
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Verified
+                          </div>
+                          {vendor.featured && (
+                            <div className="flex items-center text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                              Featured
+                            </div>
+                          )}
                         </div>
                       </div>
 
