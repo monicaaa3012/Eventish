@@ -6,9 +6,7 @@ import { useNavigate } from "react-router-dom"
 const VendorBrowse = () => {
   const navigate = useNavigate()
   const [vendors, setVendors] = useState([])
-  const [recommended, setRecommended] = useState([]) // ✅ new state
   const [loading, setLoading] = useState(true)
-  const [loadingRecommended, setLoadingRecommended] = useState(true) // ✅
   const [filters, setFilters] = useState({
     service: "",
     location: "",
@@ -30,28 +28,8 @@ const VendorBrowse = () => {
     fetchVendors()
     fetchServices()
     fetchLocations()
-    fetchRecommendedVendors() // ✅ load recommended
   }, [filters])
 
-  // ✅ Fetch Recommended Vendors
-  const fetchRecommendedVendors = async () => {
-    try {
-      setLoadingRecommended(true)
-      const response = await fetch("/api/recommendations/latest", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, // if using JWT
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setRecommended(data.vendors || [])
-      }
-    } catch (error) {
-      console.error("Error fetching recommended vendors:", error)
-    } finally {
-      setLoadingRecommended(false)
-    }
-  }
-
-  // ✅ Fetch Vendors
   const fetchVendors = async (page = 1) => {
     try {
       setLoading(true)
@@ -150,53 +128,27 @@ const VendorBrowse = () => {
               Connect with trusted service providers for your events
             </p>
           </div>
-          <button
+          <div className="flex justify-between items-center mt-6">
+            <button
               onClick={() => navigate("/user/dashboard")}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium"
             >
               Back
             </button>
+            <button
+              onClick={() => {
+                console.log("Navigating to vendor-recommendations")
+                console.log("Current user role:", localStorage.getItem("role"))
+                console.log("Current token:", localStorage.getItem("token") ? "exists" : "missing")
+                navigate("/vendor-recommendations")
+              }}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              View Recommendations
+            </button>
+          </div>
         </div>
       </div>
-   {/* ✅ Recommended Vendors */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Recommended Vendors</h2>
-          {loadingRecommended ? (
-            <p>Loading recommendations...</p>
-          ) : recommended.length === 0 ? (
-            <p className="text-gray-600">No recommendations yet. Create an event to see suggestions.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommended.map((vendor) => (
-                <div
-                  key={vendor._id}
-                  className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-white/20"
-                >
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors duration-300">
-                      {vendor.businessName}
-                    </h3>
-                    <div className="flex items-center mb-2">
-                      <div className="flex items-center mr-2">{renderStars(vendor.rating)}</div>
-                      <span className="text-sm text-gray-600">
-                        {vendor.rating} ({vendor.reviewCount} reviews)
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                      {vendor.description || "Professional service provider"}
-                    </p>
-                    <button
-                      onClick={() => navigate(`/vendors/${vendor._id}`)}
-                      className="w-full bg-primary-gradient text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/20">

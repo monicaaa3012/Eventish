@@ -21,6 +21,8 @@ import UserDetails from "./pages/customer/UserDetails"
 import EditService from "./pages/Vendor/AddService/EditService" // Add this import
 import LeaveReview from "./pages/LeaveReview"
 import VendorMyReviews from "./pages/Vendor/VendorMyReviews"
+import VendorRecommendation from "./pages/VendorRecommendation"
+import TestRecommendation from "./pages/TestRecommendation"
 const App = () => {
   return (
     <Router>
@@ -108,6 +110,14 @@ const App = () => {
             }
           />
           <Route
+            path="/vendor-recommendations"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <VendorRecommendation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/vendors/:id"
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
@@ -156,17 +166,9 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-  <Route
+          <Route
             path="/vendor/my-reviews"
             element={
-              <ProtectedRoute allowedRoles={["vendor"]}>
-                <VendorMyReviews />
-              </ProtectedRoute>
-            }
-          />
-         <Route
-          path="/vendor/my-reviews" 
-          element={
               <ProtectedRoute allowedRoles={["vendor"]}>
                 <VendorMyReviews />
               </ProtectedRoute>
