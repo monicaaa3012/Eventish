@@ -16,7 +16,14 @@ const VendorBrowse = () => {
     sortBy: "rating",
     sortOrder: "desc",
   })
-  const [services, setServices] = useState([])
+  // Define service categories
+  const serviceCategories = [
+    { value: "catering", label: "Catering" },
+    { value: "decoration", label: "Decoration" },
+    { value: "photography", label: "Photography" },
+    { value: "music", label: "Music" },
+    { value: "makeup", label: "Makeup" }
+  ]
   const [locations, setLocations] = useState([])
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -24,12 +31,20 @@ const VendorBrowse = () => {
     total: 0,
   })
 
+
   useEffect(() => {
     fetchVendors()
-    fetchServices()
     fetchLocations()
   }, [filters])
 
+  // Initial load effect
+  useEffect(() => {
+    fetchVendors(1)
+  }, [])
+
+
+
+  // Fetch Vendors
   const fetchVendors = async (page = 1) => {
     try {
       setLoading(true)
@@ -52,6 +67,9 @@ const VendorBrowse = () => {
           totalPages: data.totalPages,
           total: data.total,
         })
+
+      } else {
+        console.error("Failed to fetch vendors:", response.status, response.statusText)
       }
     } catch (error) {
       console.error("Error fetching vendors:", error)
@@ -60,17 +78,7 @@ const VendorBrowse = () => {
     }
   }
 
-  const fetchServices = async () => {
-    try {
-      const response = await fetch("/api/vendors/services")
-      if (response.ok) {
-        const data = await response.json()
-        setServices(data)
-      }
-    } catch (error) {
-      console.error("Error fetching services:", error)
-    }
-  }
+
 
   const fetchLocations = async () => {
     try {
@@ -161,9 +169,9 @@ const VendorBrowse = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="">All Services</option>
-                {services.map((service) => (
-                  <option key={service} value={service}>
-                    {service}
+                {serviceCategories.map((service) => (
+                  <option key={service.value} value={service.value}>
+                    {service.label}
                   </option>
                 ))}
               </select>
@@ -242,9 +250,22 @@ const VendorBrowse = () => {
           </div>
 
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              Showing {vendors.length} of {pagination.total} vendors
-            </p>
+            <div>
+              <p className="text-sm text-gray-600">
+                Showing {vendors.length} of {pagination.total} vendors
+              </p>
+              {Object.values(filters).some(filter => filter) && (
+                <p className="text-xs text-purple-600 mt-1">
+                  Filters active: {Object.entries(filters).filter(([key, value]) => value).map(([key, value]) => {
+                    if (key === 'service') {
+                      const serviceLabel = serviceCategories.find(s => s.value === value)?.label || value
+                      return `${key}: ${serviceLabel}`
+                    }
+                    return `${key}: ${value}`
+                  }).join(', ')}
+                </p>
+              )}
+            </div>
             <button onClick={clearFilters} className="text-purple-600 hover:text-purple-800 font-medium text-sm">
               Clear Filters
             </button>
@@ -269,13 +290,28 @@ const VendorBrowse = () => {
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No vendors found</h3>
-            <p className="text-gray-600 mb-8">Try adjusting your filters to find more vendors.</p>
-            <button
-              onClick={clearFilters}
-              className="bg-primary-gradient text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
-            >
-              Clear All Filters
-            </button>
+            <p className="text-gray-600 mb-4">
+              {Object.values(filters).some(filter => filter) 
+                ? "Try adjusting your filters to find more vendors." 
+                : "No vendors have completed their profiles yet."}
+            </p>
+            <p className="text-sm text-gray-500 mb-8">
+              Total vendors in database: {pagination.total}
+            </p>
+            <div className="space-x-4">
+              <button
+                onClick={clearFilters}
+                className="bg-primary-gradient text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
+              >
+                Clear All Filters
+              </button>
+              <button
+                onClick={() => fetchVendors(1)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium transition-all duration-300"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -289,7 +325,7 @@ const VendorBrowse = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors duration-300">
-                          {vendor.businessName}
+                          {vendor.businessName || vendor.userId?.name || "Unnamed Vendor"}
                         </h3>
                         <div className="flex items-center mb-2">
                           <div className="flex items-center mr-2">{renderStars(vendor.rating)}</div>
@@ -307,6 +343,11 @@ const VendorBrowse = () => {
 
                     <p className="text-gray-600 mb-4 line-clamp-3">
                       {vendor.description || "Professional service provider"}
+                      {(!vendor.description || vendor.businessName === "My Business") && (
+                        <span className="text-sm text-orange-600 block mt-1 italic">
+                          Profile setup in progress
+                        </span>
+                      )}
                     </p>
 
                     <div className="space-y-3 mb-4">
@@ -325,7 +366,7 @@ const VendorBrowse = () => {
                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
-                        <span>{vendor.location}</span>
+                        <span>{vendor.location || "Location not specified"}</span>
                       </div>
 
                       <div className="flex items-center text-sm text-gray-500">
@@ -338,22 +379,28 @@ const VendorBrowse = () => {
                           />
                         </svg>
                         <span>
-                          ${vendor.priceRange.min.toLocaleString()} - ${vendor.priceRange.max.toLocaleString()}
+                          ${vendor.priceRange?.min?.toLocaleString() || "0"} - ${vendor.priceRange?.max?.toLocaleString() || "N/A"}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {vendor.services.slice(0, 3).map((service, index) => (
-                        <span
-                          key={index}
-                          className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium"
-                        >
-                          {service}
-                        </span>
-                      ))}
-                      {vendor.services.length > 3 && (
-                        <span className="text-xs text-gray-500">+{vendor.services.length - 3} more</span>
+                      {vendor.services && vendor.services.length > 0 ? (
+                        <>
+                          {vendor.services.slice(0, 3).map((service, index) => (
+                            <span
+                              key={index}
+                              className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium"
+                            >
+                              {service}
+                            </span>
+                          ))}
+                          {vendor.services.length > 3 && (
+                            <span className="text-xs text-gray-500">+{vendor.services.length - 3} more</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-500 italic">No services listed yet</span>
                       )}
                     </div>
 

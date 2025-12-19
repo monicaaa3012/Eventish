@@ -316,13 +316,21 @@ const VendorDetails = () => {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between">
                           <h3 className="text-lg font-semibold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">
-                            Service Package
+                            {service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) + " Service" : "Service Package"}
                           </h3>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-purple-600">${service.price}</div>
                             <div className="text-xs text-gray-500">Starting from</div>
                           </div>
                         </div>
+
+                        {service.serviceType && (
+                          <div className="mb-2">
+                            <span className="inline-block bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">
+                              {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)} Service
+                            </span>
+                          </div>
+                        )}
 
                         <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{service.description}</p>
 

@@ -9,6 +9,8 @@ const BookingManagement = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("customer") // customer or vendor
   const [toast, setToast] = useState({ show: false, message: "", type: "" })
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedBookingId, setSelectedBookingId] = useState(null)
   const userRole = localStorage.getItem("role")
 
   useEffect(() => {
@@ -73,6 +75,39 @@ const BookingManagement = () => {
     }
   }
 
+  const confirmVendorWithPayment = async (paymentMethod) => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch(`/api/bookings/${selectedBookingId}/confirm-vendor`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ paymentMethod }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        showToast(result.message || `Vendor confirmed with ${paymentMethod} payment!`, "success")
+        setShowPaymentModal(false)
+        setSelectedBookingId(null)
+        fetchBookings()
+      } else {
+        const errorData = await response.json()
+        showToast(errorData.message || "Failed to confirm vendor", "error")
+      }
+    } catch (error) {
+      console.error("Error confirming vendor:", error)
+      showToast("Error confirming vendor", "error")
+    }
+  }
+
+  const handleConfirmVendor = (bookingId) => {
+    setSelectedBookingId(bookingId)
+    setShowPaymentModal(true)
+  }
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -93,8 +128,10 @@ const BookingManagement = () => {
         return "bg-blue-100 text-blue-800 border border-blue-300"
       case "In Progress":
         return "bg-purple-100 text-purple-800 border border-purple-300"
-      case "Completed":
+      case "Booked":
         return "bg-emerald-100 text-emerald-800 border border-emerald-300"
+      case "Completed":
+        return "bg-green-100 text-green-800 border border-green-300"
       case "Rejected":
         return "bg-red-100 text-red-800 border border-red-300"
       case "Cancelled":
@@ -129,6 +166,12 @@ const BookingManagement = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+      case "Booked":
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
       case "Completed":
@@ -320,6 +363,25 @@ const BookingManagement = () => {
                       </div>
                     )}
 
+                    {booking.vendorConfirmed && booking.paymentMethod && (
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 mb-4 border border-green-200">
+                        <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                          </svg>
+                          Advanced Payment
+                        </h4>
+                        <div className="space-y-1">
+                          <p className="text-sm text-green-700">
+                            <strong>Method:</strong> {booking.paymentMethod === "cash" ? "Cash Payment" : "Online Payment"}
+                          </p>
+                          <p className="text-sm text-green-700">
+                            <strong>Status:</strong> {booking.paymentStatus === "completed" ? "Completed" : booking.paymentStatus === "pending" ? "Pending" : "Failed"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {booking.message && (
                       <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                         <h4 className="font-semibold text-gray-800 mb-2">Message</h4>
@@ -346,24 +408,6 @@ const BookingManagement = () => {
                     </div>
                   )}
 
-                  {activeTab === "customer" && (
-                    <div className="flex space-x-3 mt-4 lg:mt-0 lg:ml-6">
-                      <button
-                        onClick={() => navigate(`/vendors/${booking.vendorId._id}`)}
-                        className="bg-primary-gradient text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300"
-                      >
-                        View Vendor
-                      </button>
-                      {booking.status === "Completed" && (
-                        <button
-                          onClick={() => navigate(`/bookings/${booking._id}/review`)}
-                          className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
-                        >
-                          Leave Review
-                        </button>
-                      )}
-                    </div>
-                  )}
                   <div className="flex flex-col gap-3 lg:min-w-[180px]">
                     {activeTab === "customer" && (
                       <>
@@ -378,12 +422,34 @@ const BookingManagement = () => {
                             Cancel Booking
                           </button>
                         )}
-                        <button
-                          onClick={() => navigate(`/vendors/${booking.vendorId._id}`)}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
-                        >
-                          View Vendor
-                        </button>
+                        
+                        {booking.status === "Scheduled" ? (
+                          <button
+                            onClick={() => handleConfirmVendor(booking._id)}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Book Vendor
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => navigate(`/vendors/${booking.vendorId._id}`)}
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+                          >
+                            View Vendor
+                          </button>
+                        )}
+
+                        {booking.status === "Booked" && (
+                          <button
+                            onClick={() => navigate(`/bookings/${booking._id}/review`)}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+                          >
+                            Leave Review
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -393,6 +459,55 @@ const BookingManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Payment Method Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Choose Payment Method</h3>
+              <p className="text-gray-600">How would you like to do advance payment for this service?</p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <button
+                onClick={() => confirmVendorWithPayment("cash")}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-4 rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Pay with Cash
+              </button>
+
+              <button
+                onClick={() => confirmVendorWithPayment("online")}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-4 rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Pay Online
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowPaymentModal(false)
+                setSelectedBookingId(null)
+              }}
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-2xl font-medium transition-all duration-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {toast.show && (

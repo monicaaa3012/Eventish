@@ -10,7 +10,7 @@ import {
   getVendorByUserId,
 } from "../controllers/vendorController.js"
 import { getMyReviews } from "../controllers/reviewController.js"
-import authMiddleware from "../middleware/authMiddleware.js"
+import protect from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
@@ -19,11 +19,12 @@ router.get("/", getAllVendors)
 router.get("/services", getVendorServices)
 router.get("/locations", getVendorLocations)
 
+
 // Protected routes - put /me before /:id to avoid conflicts
-router.get("/me", authMiddleware, getVendorProfile)
-router.get("/my-reviews", authMiddleware, getMyReviews)
-router.post("/", authMiddleware, createVendorProfile)
-router.put("/profile", authMiddleware, updateVendorProfile)
+router.get("/me", protect, getVendorProfile)
+router.get("/my-reviews", protect, getMyReviews)
+router.post("/", protect, createVendorProfile)
+router.put("/profile", protect, updateVendorProfile)
 
 // Public route with parameter (must be last)
 router.get("/user/:userId", getVendorByUserId)

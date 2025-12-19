@@ -1,32 +1,44 @@
 import express from "express"
-import authMiddleware from "../middleware/authMiddleware.js"
+import protect from "../middleware/authMiddleware.js"
 import {
   createBooking,
   getCustomerBookings,
   getCurrentVendorBookings,
   getVendorBookings,
   updateBookingStatus,
+  confirmVendorWithPayment,
   getAllBookings,
+  getBookingById,
+  addBookingReview,
 } from "../controllers/bookingController.js"
 
 const router = express.Router()
 
 // Create booking
-router.post("/", authMiddleware, createBooking)
+router.post("/", protect, createBooking)
 
 // Get customer bookings
-router.get("/customer", authMiddleware, getCustomerBookings)
+router.get("/customer", protect, getCustomerBookings)
 
 // Get vendor bookings (using current user's vendor profile)
-router.get("/vendor", authMiddleware, getCurrentVendorBookings)
+router.get("/vendor", protect, getCurrentVendorBookings)
 
 // Get vendor bookings by vendor ID
-router.get("/vendor/:vendorId", authMiddleware, getVendorBookings)
+router.get("/vendor/:vendorId", protect, getVendorBookings)
 
 // Update booking status
-router.put("/:id/status", authMiddleware, updateBookingStatus)
+router.put("/:id/status", protect, updateBookingStatus)
+
+// Confirm vendor with payment
+router.put("/:id/confirm-vendor", protect, confirmVendorWithPayment)
 
 // Get all bookings (admin)
-router.get("/all", authMiddleware, getAllBookings)
+router.get("/all", protect, getAllBookings)
+
+// Get single booking by ID
+router.get("/:id", protect, getBookingById)
+
+// Add review to booking
+router.post("/:id/review", protect, addBookingReview)
 
 export default router

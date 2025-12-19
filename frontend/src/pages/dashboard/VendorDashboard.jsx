@@ -13,25 +13,75 @@ const VendorDashboard = () => {
     services: [],
     bookings: [],
     revenue: 0,
+    rating: 0,
+    reviewCount: 0,
   })
   const [myServices, setMyServices] = useState([])
   const [servicesLoading, setServicesLoading] = useState(true)
+  const [vendorLoading, setVendorLoading] = useState(true)
 
   useEffect(() => {
-    // Get user info from localStorage or API
-    const token = localStorage.getItem("token")
-    if (token) {
-      // You can decode the token or make an API call to get user info
-      // For now, we'll use placeholder data
-      setVendorData({
-        name: "Vendor User",
-        email: "vendor@example.com",
-        services: [],
-        bookings: [],
-        revenue: 0,
-      })
-    }
+    fetchVendorProfile()
     fetchMyServices()
+  }, [])
+
+  const fetchVendorProfile = async () => {
+    try {
+      setVendorLoading(true)
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const response = await fetch("http://localhost:5000/api/vendors/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setVendorData({
+          name: data.userId?.name || data.businessName || "Vendor User",
+          email: data.userId?.email || "vendor@example.com",
+          services: data.services || [],
+          bookings: [],
+          revenue: 0,
+          rating: data.rating || 0,
+          reviewCount: data.reviewCount || 0,
+        })
+      } else {
+        console.error("Failed to fetch vendor profile")
+      }
+    } catch (error) {
+      console.error("Error fetching vendor profile:", error)
+    } finally {
+      setVendorLoading(false)
+    }
+  }
+
+  // Add a function to refresh data when user comes back to dashboard or when reviews are added
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchVendorProfile()
+    }
+    
+    const handleReviewAdded = () => {
+      fetchVendorProfile()
+    }
+
+    const handleServiceUpdated = () => {
+      fetchMyServices()
+      fetchVendorProfile()
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('reviewAdded', handleReviewAdded)
+    window.addEventListener('serviceUpdated', handleServiceUpdated)
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('reviewAdded', handleReviewAdded)
+      window.removeEventListener('serviceUpdated', handleServiceUpdated)
+    }
   }, [])
 
   const fetchMyServices = async () => {
@@ -247,7 +297,7 @@ const VendorDashboard = () => {
     },
     {
       title: "Customer Rating",
-      value: "5.0",
+      value: "", // This will be handled separately in the JSX
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -313,7 +363,34 @@ const VendorDashboard = () => {
                 <div className={`p-3 rounded-xl ${stat.bgColor} ${stat.color}`}>{stat.icon}</div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  {stat.title === "Customer Rating" ? (
+                    <div className="mt-1">
+                      {vendorLoading ? (
+                        <p className="text-2xl font-bold text-gray-900">...</p>
+                      ) : vendorData.reviewCount > 0 ? (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-2xl font-bold text-gray-900">{vendorData.rating.toFixed(1)}</span>
+                          <div className="flex">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <svg
+                                key={i}
+                                className={`w-4 h-4 ${i < Math.round(vendorData.rating) ? "text-yellow-400" : "text-gray-300"}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">({vendorData.reviewCount})</span>
+                        </div>
+                      ) : (
+                        <p className="text-lg font-bold text-gray-500">No reviews yet</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -420,12 +497,20 @@ const VendorDashboard = () => {
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <h3 className="text-lg font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">
-                          {service.title || "Service Package"}
+                          {service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) : "Service Package"}
                         </h3>
                         <div className="text-right">
                           <div className="text-xl font-bold text-purple-600">${service.price}</div>
                         </div>
                       </div>
+
+                      {service.serviceType && (
+                        <div className="mb-2">
+                          <span className="inline-block bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">
+                            {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)} Service
+                          </span>
+                        </div>
+                      )}
 
                       <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{service.description}</p>
 

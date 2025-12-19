@@ -48,7 +48,22 @@ export const getAllVendors = async (req, res) => {
     const filter = {}
 
     if (service) {
-      filter.services = { $in: [new RegExp(service, "i")] }
+      try {
+        // Find vendors who have created services with the specified serviceType
+        const Service = (await import("../models/ServiceModel.js")).default
+        const servicesWithType = await Service.find({ serviceType: service }).distinct("createdBy")
+        
+        if (servicesWithType.length > 0) {
+          filter.userId = { $in: servicesWithType }
+        } else {
+          // If no services found with this type, return no results
+          filter._id = { $in: [] }
+        }
+      } catch (error) {
+        console.error("Error filtering by service type:", error)
+        // Return no results if there's an error
+        filter._id = { $in: [] }
+      }
     }
 
     if (location) {
@@ -56,12 +71,11 @@ export const getAllVendors = async (req, res) => {
     }
 
     if (minPrice || maxPrice) {
-      filter.$or = []
       if (minPrice) {
-        filter.$or.push({ "priceRange.min": { $gte: Number.parseInt(minPrice) } })
+        filter["priceRange.max"] = { $gte: Number.parseInt(minPrice) }
       }
       if (maxPrice) {
-        filter.$or.push({ "priceRange.max": { $lte: Number.parseInt(maxPrice) } })
+        filter["priceRange.min"] = { $lte: Number.parseInt(maxPrice) }
       }
     }
 
@@ -194,3 +208,5 @@ export const getVendorLocations = async (req, res) => {
     res.status(500).json({ message: "Error fetching locations", error: error.message })
   }
 }
+
+
