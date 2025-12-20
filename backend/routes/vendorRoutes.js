@@ -12,7 +12,7 @@ import {
   featureVendor,
   getPendingVendors,
 } from "../controllers/vendorController.js"
-import { getMyReviews } from "../controllers/reviewController.js"
+import { getMyReviews, getVendorReviews } from "../controllers/reviewController.js"
 import protect from "../middleware/authMiddleware.js"
 
 const router = express.Router()
@@ -36,6 +36,7 @@ router.get("/admin/pending", protect, getPendingVendors)
 
 // Public route with parameter (must be last)
 router.get("/user/:userId", getVendorByUserId)
+router.get("/:id/reviews", getVendorReviews)
 router.get("/:id", getVendorById)
 
 export default router

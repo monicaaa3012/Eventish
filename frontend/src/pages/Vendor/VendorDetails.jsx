@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import ReviewsList from "../../components/ReviewsList"
 
 const VendorDetails = () => {
   const { id } = useParams()
@@ -351,6 +352,21 @@ const VendorDetails = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* Customer Reviews Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-8 border border-white/20">
+              <ReviewsList vendorId={id} maxReviews={5} />
+              {vendor && vendor.reviewCount > 5 && (
+                <div className="text-center mt-6">
+                  <button
+                    onClick={() => navigate(`/vendors/${id}/reviews`)}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+                  >
+                    View All Reviews ({vendor.reviewCount})
+                  </button>
                 </div>
               )}
             </div>

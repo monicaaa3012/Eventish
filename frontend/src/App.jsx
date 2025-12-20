@@ -11,6 +11,7 @@ import Unauthorized from "./components/Unauthorized"
 import ProtectedRoute from "./routes/ProtectedRoute"
 import VendorBrowse from "./pages/Vendor/VendorBrowse"
 import VendorDetails from "./pages/Vendor/VendorDetails"
+import AllVendorReviews from "./pages/Vendor/AllVendorReviews"
 import BookingManagement from "./pages/bookings/BookingManagement"
 import AddService from "./pages/Vendor/AddService/AddService"
 import ManageBooking from "./pages/Vendor/ManageBooking"
@@ -21,8 +22,7 @@ import UserDetails from "./pages/customer/UserDetails"
 import EditService from "./pages/Vendor/AddService/EditService" // Add this import
 import LeaveReview from "./pages/LeaveReview"
 import VendorMyReviews from "./pages/Vendor/VendorMyReviews"
-import VendorRecommendation from "./pages/VendorRecommendation"
-import TestRecommendation from "./pages/TestRecommendation"
+
 const App = () => {
   return (
     <Router>
@@ -33,6 +33,9 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+
+
+
 
           {/* Protected Routes */}
           <Route
@@ -110,14 +113,6 @@ const App = () => {
             }
           />
           <Route
-            path="/vendor-recommendations"
-            element={
-              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
-                <VendorRecommendation />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/vendors/:id"
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
@@ -125,6 +120,15 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/vendors/:id/reviews"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
+                <AllVendorReviews />
+                </ProtectedRoute>
+                }
+                />
+   
           <Route
             path="/services/:serviceId"
             element={
@@ -147,6 +151,14 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
                 <BookingManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings/:bookingId/review"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <LeaveReview />
               </ProtectedRoute>
             }
           />
@@ -174,6 +186,9 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+        
+          
+
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
