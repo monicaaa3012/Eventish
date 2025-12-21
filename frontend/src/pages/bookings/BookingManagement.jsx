@@ -26,7 +26,7 @@ const BookingManagement = () => {
     try {
       setLoading(true)
       const token = localStorage.getItem("token")
-      const endpoint = activeTab === "customer" ? "/api/bookings/customer" : "/api/bookings/vendor"
+      const endpoint = activeTab === "customer" ? "/api/bookings/customer" : "/api/bookings/vendor/current"
 
       const response = await fetch(endpoint, {
         headers: {
@@ -65,6 +65,9 @@ const BookingManagement = () => {
         const result = await response.json()
         showToast(result.message || `Booking ${status.toLowerCase()} successfully!`, "success")
         fetchBookings()
+        
+        // Dispatch event to update vendor dashboard
+        window.dispatchEvent(new CustomEvent('bookingUpdated'))
       } else {
         const errorData = await response.json()
         showToast(errorData.message || "Failed to update booking status", "error")
@@ -93,6 +96,9 @@ const BookingManagement = () => {
         setShowPaymentModal(false)
         setSelectedBookingId(null)
         fetchBookings()
+        
+        // Dispatch event to update vendor dashboard
+        window.dispatchEvent(new CustomEvent('bookingUpdated'))
       } else {
         const errorData = await response.json()
         showToast(errorData.message || "Failed to confirm vendor", "error")

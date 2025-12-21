@@ -174,7 +174,7 @@ const EditService = () => {
               </div>
 
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Price ($) *</label>
+                <label className="block text-gray-700 font-medium mb-2">Price (NPR) *</label>
                 <input
                   type="number"
                   name="price"

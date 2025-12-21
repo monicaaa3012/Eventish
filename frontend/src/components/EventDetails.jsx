@@ -113,7 +113,7 @@ const EventDetails = () => {
           {/* Added Budget Section */}
           <div className="bg-gray-50 rounded-xl p-4 shadow-sm">
             <h2 className="text-sm font-medium text-gray-500 mb-1">Budget</h2>
-            <p className="font-semibold text-gray-800">${event.budget?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="font-semibold text-gray-800">NPR {event.budget?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
 
