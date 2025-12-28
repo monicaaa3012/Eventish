@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { formatNPR } from "../../utils/currency.js"
+import {EsewaPayment} from "neppayments"
 
 const ManageBooking = () => {
   const navigate = useNavigate()
@@ -152,6 +153,16 @@ const ManageBooking = () => {
         </div>
       </div>
     )
+  }
+
+  const handleEsewaPayment = (booking) => {
+    if (typeof window === "undefined") return
+
+    const payment = new EsewaPayment({
+      amount : booking.servicePrice || booking.eventId?.price,
+          successUrl: `${window.location.origin}/payment-success?bookingId=${booking._id}`,
+    failureUrl: `${window.location.origin}/payment-failure?bookingId=${booking._id}`,
+    })
   }
 
   return (
