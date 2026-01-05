@@ -26,7 +26,7 @@ const BookingManagement = () => {
     try {
       setLoading(true)
       const token = localStorage.getItem("token")
-      const endpoint = activeTab === "customer" ? "/api/bookings/customer" : "/api/bookings/vendor"
+      const endpoint = activeTab === "customer" ? "/api/bookings/customer" : "/api/bookings/vendor/current"
 
       const response = await fetch(endpoint, {
         headers: {
@@ -65,6 +65,9 @@ const BookingManagement = () => {
         const result = await response.json()
         showToast(result.message || `Booking ${status.toLowerCase()} successfully!`, "success")
         fetchBookings()
+        
+        // Dispatch event to update vendor dashboard
+        window.dispatchEvent(new CustomEvent('bookingUpdated'))
       } else {
         const errorData = await response.json()
         showToast(errorData.message || "Failed to update booking status", "error")
@@ -76,30 +79,103 @@ const BookingManagement = () => {
   }
 
   const confirmVendorWithPayment = async (paymentMethod) => {
+    if (paymentMethod === "online") {
+      // Handle eSewa payment
+      await initiateEsewaPayment()
+    } else {
+      // Handle cash payment
+      try {
+        const token = localStorage.getItem("token")
+        const response = await fetch(`/api/bookings/${selectedBookingId}/confirm-vendor`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ paymentMethod }),
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          showToast(result.message || `Vendor confirmed with ${paymentMethod} payment!`, "success")
+          setShowPaymentModal(false)
+          setSelectedBookingId(null)
+          fetchBookings()
+          
+          // Dispatch event to update vendor dashboard
+          window.dispatchEvent(new CustomEvent('bookingUpdated'))
+        } else {
+          const errorData = await response.json()
+          showToast(errorData.message || "Failed to confirm vendor", "error")
+        }
+      } catch (error) {
+        console.error("Error confirming vendor:", error)
+        showToast("Error confirming vendor", "error")
+      }
+    }
+  }
+
+  const initiateEsewaPayment = async () => {
     try {
+      console.log("Initiating eSewa payment for booking:", selectedBookingId)
+      
       const token = localStorage.getItem("token")
-      const response = await fetch(`/api/bookings/${selectedBookingId}/confirm-vendor`, {
-        method: "PUT",
+      if (!token) {
+        showToast("Please login to continue", "error")
+        return
+      }
+
+      const response = await fetch("/api/esewa/initiate", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ paymentMethod }),
+        body: JSON.stringify({ bookingId: selectedBookingId }),
       })
 
+      console.log("Response status:", response.status)
+      
       if (response.ok) {
         const result = await response.json()
-        showToast(result.message || `Vendor confirmed with ${paymentMethod} payment!`, "success")
+        console.log("eSewa initiate response:", result)
+        
+        // Close the payment modal
         setShowPaymentModal(false)
         setSelectedBookingId(null)
-        fetchBookings()
+        
+        // Create and submit form to eSewa
+        if (result.paymentUrl && result.formData) {
+          console.log("Submitting form to eSewa:", result.paymentUrl)
+          
+          // Create a form element
+          const form = document.createElement('form')
+          form.method = 'POST'
+          form.action = result.paymentUrl
+          
+          // Add form data as hidden inputs
+          Object.keys(result.formData).forEach(key => {
+            const input = document.createElement('input')
+            input.type = 'hidden'
+            input.name = key
+            input.value = result.formData[key]
+            form.appendChild(input)
+          })
+          
+          // Append form to body and submit
+          document.body.appendChild(form)
+          form.submit()
+        } else {
+          showToast("Invalid eSewa response", "error")
+        }
       } else {
         const errorData = await response.json()
-        showToast(errorData.message || "Failed to confirm vendor", "error")
+        console.error("eSewa initiate error:", errorData)
+        showToast(errorData.message || "Failed to initiate eSewa payment", "error")
       }
     } catch (error) {
-      console.error("Error confirming vendor:", error)
-      showToast("Error confirming vendor", "error")
+      console.error("Error initiating eSewa payment:", error)
+      showToast("Network error: Unable to connect to payment service", "error")
     }
   }
 
@@ -529,7 +605,7 @@ const BookingManagement = () => {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
-                Pay Online
+                Pay with eSewa
               </button>
             </div>
 

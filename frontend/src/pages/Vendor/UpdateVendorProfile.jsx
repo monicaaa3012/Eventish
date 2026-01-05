@@ -221,7 +221,7 @@ const UpdateVendorProfile = () => {
               </div>
 
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Min Price ($)</label>
+                <label className="block text-gray-700 font-medium mb-2">Min Price (NPR)</label>
                 <input
                   type="number"
                   name="priceRange.min"
@@ -232,7 +232,7 @@ const UpdateVendorProfile = () => {
               </div>
 
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Max Price ($)</label>
+                <label className="block text-gray-700 font-medium mb-2">Max Price (NPR)</label>
                 <input
                   type="number"
                   name="priceRange.max"

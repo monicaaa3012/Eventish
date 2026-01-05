@@ -217,7 +217,7 @@ const AdminDashboard = () => {
 
       <div className="mb-4">
         <p className="text-sm text-gray-600">
-          <strong>Price Range:</strong> ${vendor.priceRange?.min || 0} - ${vendor.priceRange?.max || 0}
+          <strong>Price Range:</strong> NPR {vendor.priceRange?.min || 0} - NPR {vendor.priceRange?.max || 0}
         </p>
         <p className="text-sm text-gray-600">
           <strong>Rating:</strong> {vendor.rating || 0}/5 ({vendor.reviewCount || 0} reviews)

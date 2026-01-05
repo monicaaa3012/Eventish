@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { formatNPR } from "../../utils/currency.js"
+import {EsewaPayment} from "neppayments"
 
 const ManageBooking = () => {
   const navigate = useNavigate()
@@ -29,7 +31,7 @@ const ManageBooking = () => {
       }
 
       // Fetch bookings for current vendor (backend will find vendor by userId from token)
-      const response = await fetch(`/api/bookings/vendor`, {
+      const response = await fetch(`/api/bookings/vendor/current`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -139,10 +141,7 @@ const ManageBooking = () => {
   }
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price)
+    return formatNPR(price)
   }
 
   if (loading) {
@@ -154,6 +153,16 @@ const ManageBooking = () => {
         </div>
       </div>
     )
+  }
+
+  const handleEsewaPayment = (booking) => {
+    if (typeof window === "undefined") return
+
+    const payment = new EsewaPayment({
+      amount : booking.servicePrice || booking.eventId?.price,
+          successUrl: `${window.location.origin}/payment-success?bookingId=${booking._id}`,
+    failureUrl: `${window.location.origin}/payment-failure?bookingId=${booking._id}`,
+    })
   }
 
   return (

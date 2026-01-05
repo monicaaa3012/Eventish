@@ -338,7 +338,7 @@ const VendorProfile = () => {
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Pricing</h3>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-600 mb-2">
-                    ${vendor.priceRange.min.toLocaleString()} - ${vendor.priceRange.max.toLocaleString()}
+                    NPR {vendor.priceRange.min.toLocaleString()} - NPR {vendor.priceRange.max.toLocaleString()}
                   </div>
                   <p className="text-gray-600 text-sm">Starting price range</p>
                 </div>

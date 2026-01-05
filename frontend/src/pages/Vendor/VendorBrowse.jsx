@@ -199,7 +199,7 @@ const VendorBrowse = () => {
                 type="number"
                 value={filters.minPrice}
                 onChange={(e) => handleFilterChange("minPrice", e.target.value)}
-                placeholder="$0"
+                placeholder="NPR 0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
@@ -210,7 +210,7 @@ const VendorBrowse = () => {
                 type="number"
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
-                placeholder="$10000"
+                placeholder="NPR 100000"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
@@ -384,7 +384,7 @@ const VendorBrowse = () => {
                           />
                         </svg>
                         <span>
-                          ${vendor.priceRange?.min?.toLocaleString() || "0"} - ${vendor.priceRange?.max?.toLocaleString() || "N/A"}
+                          NPR {vendor.priceRange?.min?.toLocaleString() || "0"} - NPR {vendor.priceRange?.max?.toLocaleString() || "N/A"}
                         </span>
                       </div>
                     </div>

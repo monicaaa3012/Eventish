@@ -354,17 +354,17 @@ const AddService = () => {
             {/* Price */}
             <div>
               <label htmlFor="price" className="block text-sm font-semibold text-gray-700 mb-3">
-                Price (USD)
+                Price (NPR)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">NPR</span>
                 <input
                   id="price"
                   type="number"
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white/80"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white/80"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   required

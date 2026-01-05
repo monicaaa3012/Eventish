@@ -213,7 +213,7 @@ const ServiceDetails = () => {
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold text-purple-600 mb-1">
-                  ${service.price}
+                  NPR {service.price}
                 </div>
                 {service.priceUnit && (
                   <div className="text-sm text-gray-500">per {service.priceUnit}</div>

@@ -21,7 +21,7 @@ router.post("/", protect, createBooking)
 router.get("/customer", protect, getCustomerBookings)
 
 // Get vendor bookings (using current user's vendor profile)
-router.get("/vendor", protect, getCurrentVendorBookings)
+router.get("/vendor/current", protect, getCurrentVendorBookings)
 
 // Get vendor bookings by vendor ID
 router.get("/vendor/:vendorId", protect, getVendorBookings)

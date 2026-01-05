@@ -550,7 +550,7 @@ const VendorRecommendation = () => {
                         {vendor.priceRange && (
                           <div className="flex items-center text-sm text-gray-500">
                             <span>
-                              ${vendor.priceRange.min?.toLocaleString() || 0} - ${vendor.priceRange.max?.toLocaleString() || 0}
+                              NPR {vendor.priceRange.min?.toLocaleString() || 0} - NPR {vendor.priceRange.max?.toLocaleString() || 0}
                             </span>
                           </div>
                         )}

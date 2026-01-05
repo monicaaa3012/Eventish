@@ -71,6 +71,27 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // eSewa payment fields
+    esewaTransactionUuid: {
+      type: String,
+      required: false,
+    },
+    esewaTransactionId: {
+      type: String,
+      required: false,
+    },
+    esewaOrderId: {
+      type: String,
+      required: false,
+    },
+    esewaProductCode: {
+      type: String,
+      required: false,
+    },
+    esewaAmount: {
+      type: Number,
+      required: false,
+    },
   },
   { timestamps: true },
 )

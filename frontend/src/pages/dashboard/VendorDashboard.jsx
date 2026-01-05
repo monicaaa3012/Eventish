@@ -14,6 +14,7 @@ const VendorDashboard = () => {
     revenue: 0,
     rating: 0,
     reviewCount: 0,
+    activeBookings: 0,
   })
   const [myServices, setMyServices] = useState([])
   const [servicesLoading, setServicesLoading] = useState(true)
@@ -22,7 +23,41 @@ const VendorDashboard = () => {
   useEffect(() => {
     fetchVendorProfile()
     fetchMyServices()
+    fetchVendorBookings()
   }, [])
+
+  const fetchVendorBookings = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const response = await fetch("http://localhost:5000/api/bookings/vendor/current", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const bookings = await response.json()
+        
+        // Count active bookings (not completed, cancelled, or rejected)
+        const activeBookings = bookings.filter(booking => 
+          !["Completed", "Cancelled", "Rejected"].includes(booking.status)
+        ).length
+
+        // Update vendor data with active bookings count
+        setVendorData(prevData => ({
+          ...prevData,
+          activeBookings: activeBookings,
+          bookings: bookings
+        }))
+      } else {
+        console.error("Failed to fetch vendor bookings")
+      }
+    } catch (error) {
+      console.error("Error fetching vendor bookings:", error)
+    }
+  }
 
   const fetchVendorProfile = async () => {
     try {
@@ -46,6 +81,7 @@ const VendorDashboard = () => {
           revenue: 0,
           rating: data.rating || 0,
           reviewCount: data.reviewCount || 0,
+          activeBookings: vendorData.activeBookings || 0, // Keep existing value until bookings are fetched
         })
       } else {
         console.error("Failed to fetch vendor profile")
@@ -61,25 +97,34 @@ const VendorDashboard = () => {
   useEffect(() => {
     const handleFocus = () => {
       fetchVendorProfile()
+      fetchVendorBookings()
     }
     
     const handleReviewAdded = () => {
       fetchVendorProfile()
+      fetchVendorBookings()
     }
 
     const handleServiceUpdated = () => {
       fetchMyServices()
       fetchVendorProfile()
     }
+
+    const handleBookingUpdated = () => {
+      fetchVendorBookings()
+      fetchVendorProfile()
+    }
     
     window.addEventListener('focus', handleFocus)
     window.addEventListener('reviewAdded', handleReviewAdded)
     window.addEventListener('serviceUpdated', handleServiceUpdated)
+    window.addEventListener('bookingUpdated', handleBookingUpdated)
     
     return () => {
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('reviewAdded', handleReviewAdded)
       window.removeEventListener('serviceUpdated', handleServiceUpdated)
+      window.removeEventListener('bookingUpdated', handleBookingUpdated)
     }
   }, [])
 
@@ -265,7 +310,7 @@ const VendorDashboard = () => {
     },
     {
       title: "Active Bookings",
-      value: "0",
+      value: vendorData.activeBookings.toString(),
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -281,7 +326,7 @@ const VendorDashboard = () => {
     },
     {
       title: "This Month Revenue",
-      value: "$0",
+      value: "NPR 0",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -500,7 +545,7 @@ const VendorDashboard = () => {
                           {service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) : "Service Package"}
                         </h3>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-purple-600">${service.price}</div>
+                          <div className="text-xl font-bold text-purple-600">NPR {service.price}</div>
                         </div>
                       </div>
 

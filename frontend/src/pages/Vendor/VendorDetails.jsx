@@ -320,7 +320,7 @@ const VendorDetails = () => {
                             {service.serviceType ? service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1) + " Service" : "Service Package"}
                           </h3>
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-purple-600">${service.price}</div>
+                            <div className="text-2xl font-bold text-purple-600">NPR {service.price}</div>
                             <div className="text-xs text-gray-500">Starting from</div>
                           </div>
                         </div>
@@ -453,7 +453,7 @@ const VendorDetails = () => {
               <h3 className="text-xl font-bold text-gray-800 mb-4">Pricing Range</h3>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600 mb-2">
-                  ${vendor.priceRange.min.toLocaleString()} - ${vendor.priceRange.max.toLocaleString()}
+                  NPR {vendor.priceRange.min.toLocaleString()} - NPR {vendor.priceRange.max.toLocaleString()}
                 </div>
                 <p className="text-gray-600 text-sm">General price range</p>
               </div>
@@ -464,7 +464,7 @@ const VendorDetails = () => {
                     {vendorServices.slice(0, 3).map((service, index) => (
                       <div key={index} className="flex justify-between text-sm">
                         <span className="text-gray-600">Service {index + 1}</span>
-                        <span className="font-medium text-purple-600">${service.price}</span>
+                        <span className="font-medium text-purple-600">NPR {service.price}</span>
                       </div>
                     ))}
                     {vendorServices.length > 3 && (
