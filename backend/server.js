@@ -31,7 +31,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Add your frontend URLs
+    origin: true, // Allow all origins in development
     credentials: true,
   }),
 )

@@ -1,0 +1,19 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      animation: {
+        'spin': 'spin 1s linear infinite',
+      },
+      backdropBlur: {
+        'lg': '16px',
+      },
+    },
+  },
+  plugins: [],
+};
