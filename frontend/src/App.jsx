@@ -18,6 +18,7 @@ import AddService from "./pages/Vendor/AddService/AddService"
 import ManageBooking from "./pages/Vendor/ManageBooking"
 import UpdateVendorProfile from "./pages/Vendor/UpdateVendorProfile"
 import VendorProfile from "./pages/Vendor/VendorProfile"
+import VendorAnalytics from "./pages/Vendor/VendorAnalytics"
 import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
 import UserDetails from "./pages/customer/UserDetails"
 import EditService from "./pages/Vendor/AddService/EditService" // Add this import
@@ -74,6 +75,14 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["vendor"]}>
                 <VendorProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/analytics"
+            element={
+              <ProtectedRoute allowedRoles={["vendor"]}>
+                <VendorAnalytics />
               </ProtectedRoute>
             }
           />

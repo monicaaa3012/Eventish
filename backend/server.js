@@ -13,6 +13,7 @@ import serviceRoutes from "./routes/ServiceRoutes.js"
 import bookingRoutes from "./routes/bookingRoutes.js"
 import recommendationRoutes from "./routes/recommendationRoutes.js"
 import esewaRoutes from "./routes/esewaRoutes.js"
+import analyticsRoutes from "./routes/analyticsRoutes.js"
 // import reviewRoutes from "./routes/reviewRoutes.js" // Removed - reviews now handled in vendor and booking routes
 // ES Module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -45,6 +46,7 @@ app.use("/api/services", serviceRoutes)
 app.use("/api/bookings", bookingRoutes)
 app.use("/api/recommendations", recommendationRoutes)
 app.use("/api/esewa", esewaRoutes)
+app.use("/api/analytics", analyticsRoutes)
 // app.use("/api/reviews", reviewRoutes) // Removed - reviews now handled in vendor and booking routes
 
 // Error handling middleware

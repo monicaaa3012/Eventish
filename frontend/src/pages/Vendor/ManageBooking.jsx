@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { formatNPR } from "../../utils/currency.js"
-import { EsewaPayment } from "neppayments"
 
 const ManageBooking = () => {
   const navigate = useNavigate()
@@ -142,45 +141,6 @@ const ManageBooking = () => {
 
   const formatPrice = (price) => {
     return formatNPR(price)
-  }
-
-  const handleEsewaPayment = (booking) => {
-    if (typeof window === "undefined") return
-
-    // Ensure we have the required data
-    if (!booking || !booking._id || !booking.servicePrice) {
-      alert("Payment information is incomplete. Please try again.")
-      return
-    }
-
-    try {
-      // Use environment variable or fallback to localhost:5000
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-      
-      const payment = new EsewaPayment({
-        pid: `booking_${booking._id}_${Date.now()}`, // Unique product ID
-        amount: booking.servicePrice,
-        txAmt: 0, // Tax amount
-        psc: 0,   // Service charge
-        pdc: 0,   // Delivery charge
-        scd: "EPAYTEST", // Merchant code (use your actual merchant code)
-        successUrl: `${backendUrl}/api/esewa/${booking._id}/payment/esewa/success`,
-        failureUrl: `${backendUrl}/api/esewa/${booking._id}/payment/esewa/failure`,
-      })
-      
-      console.log("Initiating Esewa payment with:", {
-        pid: `booking_${booking._id}_${Date.now()}`,
-        amount: booking.servicePrice,
-        bookingId: booking._id,
-        successUrl: `${backendUrl}/api/esewa/${booking._id}/payment/esewa/success`,
-        failureUrl: `${backendUrl}/api/esewa/${booking._id}/payment/esewa/failure`
-      })
-      
-      payment.initiate()
-    } catch (error) {
-      console.error("Esewa payment error:", error)
-      alert("Failed to initiate payment. Please try again.")
-    }
   }
 
   if (loading) {
@@ -456,20 +416,6 @@ const ManageBooking = () => {
                               />
                             </svg>
                             Schedule
-                          </button>
-                          <button
-                            onClick={() => handleEsewaPayment(booking)}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              />
-                            </svg>
-                            Pay with Esewa
                           </button>
                         </div>
                       )}

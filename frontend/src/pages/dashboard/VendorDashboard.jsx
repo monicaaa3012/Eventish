@@ -286,7 +286,7 @@ const VendorDashboard = () => {
         </svg>
       ),
       color: "from-purple-500 to-pink-500",
-      action: () => console.log("View Analytics"),
+      action: () => navigate("/vendor/analytics"),
     },
 
   ]

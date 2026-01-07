@@ -1,7 +1,29 @@
 import express from "express"
 import protect from "../middleware/authMiddleware.js"
+import {
+  initiateEsewaPayment,
+  verifyEsewaPayment,
+  simulateEsewaPayment,
+  handleEsewaSuccess,
+  handleEsewaFailure
+} from "../controllers/esewaController.js"
 
 const router = express.Router()
+
+// Initiate eSewa payment
+router.post("/initiate", protect, initiateEsewaPayment)
+
+// Verify eSewa payment
+router.post("/verify", protect, verifyEsewaPayment)
+
+// Simulate eSewa payment (for development)
+router.post("/simulate", protect, simulateEsewaPayment)
+
+// eSewa payment success callback
+router.get("/success", handleEsewaSuccess)
+
+// eSewa payment failure callback
+router.get("/failure", handleEsewaFailure)
 
 // Esewa payment success callback
 router.get("/:bookingId/payment/esewa/success", async (req, res) => {
