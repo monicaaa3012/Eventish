@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 
 const serviceSchema = new mongoose.Schema(
-  {
+  { 
+    
+    title: {          // ADD THIS
+      type: String,
+      required: true,
+    },
     images: {
       type: [String],
       required: true,
@@ -21,6 +26,7 @@ const serviceSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
+        "venue",
         "catering",
         "decoration",
         "photography",

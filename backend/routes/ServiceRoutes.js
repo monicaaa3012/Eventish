@@ -43,43 +43,39 @@ const upload = multer({
 // Add service
 const addService = async (req, res) => {
   try {
-    // Check if files were uploaded
+    // Check files
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "At least one image is required" })
+      return res.status(400).json({ error: "At least one image is required" });
     }
 
-    const imagePaths = req.files.map((file) => file.path)
-    const { description, price, serviceType } = req.body
+    const imagePaths = req.files.map((file) => file.path);
+    
+    // 2. EXTRACT TITLE FROM REQ.BODY
+    const { title, description, price, serviceType } = req.body;
 
-    // Validate required fields
-    if (!description || !price || !serviceType) {
-      return res.status(400).json({ error: "Description, price, and service type are required" })
+    // 3. VALIDATE TITLE
+    if (!title || !description || !price || !serviceType) {
+      return res.status(400).json({ error: "All fields (title, description, price, type) are required" });
     }
 
-    // Validate price
-    const numericPrice = Number.parseFloat(price)
-    if (isNaN(numericPrice) || numericPrice < 0) {
-      return res.status(400).json({ error: "Price must be a valid positive number" })
-    }
+    const numericPrice = Number.parseFloat(price);
 
     const newService = new Service({
+      title,          // 4. PASS TITLE TO MONGOOSE
       images: imagePaths,
       description,
       price: numericPrice,
-      serviceType,
+      serviceType: serviceType.toLowerCase(),
       createdBy: req.user.id,
-    })
+    });
 
-    await newService.save()
-    res.status(201).json({
-      message: "Service created successfully",
-      service: newService,
-    })
+    await newService.save();
+    res.status(201).json({ message: "Service created successfully", service: newService });
   } catch (err) {
-    console.error("Error adding service:", err)
-    res.status(500).json({ error: "Something went wrong while adding the service" })
+    console.error("Error adding service:", err);
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 // Get all services
 const getAllServices = async (req, res) => {
@@ -206,8 +202,8 @@ const deleteService = async (req, res) => {
 router.post("/add", protect, upload.array("images", 4), addService)
 router.get("/", getAllServices)
 router.get("/my-services", protect, getUserServices)
-router.get("/:id", getServiceById)
 router.put("/:id", protect, upload.array("images", 4), updateService)
+router.get("/:id", getServiceById)
 router.delete("/:id", protect, deleteService)
 
 export default router

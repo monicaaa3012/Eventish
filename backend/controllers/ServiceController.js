@@ -1,43 +1,60 @@
 import Service from "../models/ServiceModel.js"
 
 // Add service
+// Updated Add service with detailed error catching
 const addService = async (req, res) => {
   try {
+    // 1. Log the incoming data to your terminal to verify what mobile is sending
+    console.log("Incoming Body:", req.body);
+    console.log("Incoming Files:", req.files ? req.files.length : 0);
+
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "At least one image is required" })
+      return res.status(400).json({ error: "At least one image is required" });
     }
 
-    const imagePaths = req.files.map((file) => file.path)
-    const { description, price, serviceType } = req.body
+    const imagePaths = req.files.map((file) => file.path);
+    
+    // 2. Extract title (Mobile is sending this, so we must catch it)
+    const { title, description, price, serviceType } = req.body;
 
-    if (!description || !price || !serviceType) {
-      return res.status(400).json({ error: "Description, price, and service type are required" })
+    // 3. Validation check including title
+    if (!title || !description || !price || !serviceType) {
+      return res.status(400).json({ 
+        error: `Missing fields: ${!title ? 'title ' : ''}${!description ? 'description ' : ''}${!price ? 'price ' : ''}${!serviceType ? 'serviceType' : ''}` 
+      });
     }
 
-    const numericPrice = Number.parseFloat(price)
+    const numericPrice = Number.parseFloat(price);
     if (isNaN(numericPrice) || numericPrice < 0) {
-      return res.status(400).json({ error: "Price must be a valid positive number" })
+      return res.status(400).json({ error: "Price must be a valid positive number" });
     }
 
     const newService = new Service({
+      title, // Must be in your ServiceModel.js
       images: imagePaths,
       description,
       price: numericPrice,
       serviceType,
       createdBy: req.user.id,
-    })
+    });
 
-    await newService.save()
+    await newService.save();
 
     res.status(201).json({
       message: "Service created successfully",
       service: newService,
-    })
+    });
+
   } catch (err) {
-    console.error("Error adding service:", err)
-    res.status(500).json({ error: "Something went wrong while adding the service" })
+    // 4. CRITICAL: This logs the EXACT database error in your VS Code terminal
+    console.error("DETAILED DATABASE ERROR:", err);
+
+    // 5. Send the specific error message back to the mobile app
+    res.status(500).json({ 
+      error: err.message || "Internal Server Error" 
+    });
   }
-}
+};
 
 // Get all services
 const getAllServices = async (req, res) => {
