@@ -37,6 +37,8 @@ export default function DashboardIndex() {
       return <VendorView />;
     case 'admin':
       return <AdminView />;
+      case 'user': // Explicitly handle the 'user' role from your DB
+    return <CustomerView />;
     default:
       return <CustomerView />;
   }

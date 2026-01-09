@@ -9,6 +9,9 @@ export default function VendorLayout() {
     }}>
       <Stack.Screen name="update-profile" options={{ title: 'Edit Business Profile' }} />
       <Stack.Screen name="add-service" options={{ title: 'Add New Service' }} />
+      <Stack.Screen name="my-services" options={{ title: 'My Services' }} />
+      <Stack.Screen name="service-details" options={{ headerShown: false }} />
+<Stack.Screen name="edit-service" options={{ title: 'Edit Service' }} />
     </Stack>
   );
 }

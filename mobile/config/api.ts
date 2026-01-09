@@ -1,11 +1,13 @@
-// mobile/config/api.ts
 import { AuthUtils } from '../utils/auth'; 
 
-// Constant for the base URL - ensure this matches your machine's IP
-const BASE_URL = 'http://192.168.18.7:5000/api';
+// 1. Separate the Server Root from the API Root
+// Using local IP for mobile device connectivity
+const SERVER_URL = 'http://192.168.18.7:5000';
+const BASE_URL = `${SERVER_URL}/api`;
 
 export const API_CONFIG = {
-  BASE_URL: BASE_URL,
+  SERVER_URL: SERVER_URL, // Root URL for static files (images)
+  BASE_URL: BASE_URL,     // API URL for data
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
@@ -13,18 +15,45 @@ export const API_CONFIG = {
       PROFILE: '/auth/profile',
     },
     VENDORS: {
-      ME: '/vendors/me',
+      // Merged: Public browsing & private management
+      BROWSE: '/vendors',             // For browse-vendors.tsx
+      ME: '/vendors/me',               // For update-profile.tsx
       PROFILE: '/vendors/profile',
+      LOCATIONS: '/vendors/locations', // For filtering
     },
     EVENTS: {
-      BASE: '/events',
-      MY_EVENTS: '/events/my-events', 
+      BASE: '/events',                // For create-event.tsx
+      MY_EVENTS: '/events/my-events', // For event-details.tsx
     },
     SERVICES: {
-      BASE: '/services',
-      VENDOR: '/services/my-services',
+      BASE: '/services',              // For service-details.tsx
+      VENDOR: '/services/my-services', // For my-services.tsx
     },
+    BOOKINGS: {
+      BASE: '/bookings',
+      MY_BOOKINGS: '/bookings/my-bookings', // For (tabs)/bookings.tsx
+    }
   },
+};
+
+/**
+ * Helper to get full image URL
+ * Handles Windows backslashes and missing images
+ */
+export const getImageUrl = (imagePath: string | undefined) => {
+  if (!imagePath) return 'https://via.placeholder.com/150';
+  
+  // 1. Convert Windows backslashes (\) to standard forward slashes (/)
+  let cleanPath = imagePath.replace(/\\/g, '/');
+  
+  // 2. Remove any leading slash from the database path to avoid double slashes
+  // Example: Change "/uploads/img.jpg" to "uploads/img.jpg"
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
+  }
+  
+  // 3. Construct final URL: SERVER_URL + / + cleanPath
+  return `${API_CONFIG.SERVER_URL}/${cleanPath}`;
 };
 
 /**
@@ -34,19 +63,15 @@ export const API_CONFIG = {
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
   
-  // 1. Await the token properly from AuthUtils
   const token = await AuthUtils.getToken();
   
-  // 2. Setup standard headers
   const headers: any = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  // 3. SPECIAL HANDLING FOR IMAGES (FormData)
-  // If the body is FormData, we MUST remove 'Content-Type'.
-  // The fetch API will automatically set it to 'multipart/form-data' with the correct boundary.
+  // If sending images (FormData), fetch handles the boundary and content-type automatically
   if (options.body instanceof FormData) {
     delete headers['Content-Type'];
   }
@@ -60,8 +85,6 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
   try {
     const response = await fetch(url, requestOptions);
-    
-    // Check content type for parsing
     const contentType = response.headers.get("content-type");
     let data;
     
@@ -71,19 +94,11 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
       data = await response.text();
     }
     
-    // 4. Handle Errors
     if (!response.ok) {
-      if (response.status === 401) {
-        console.warn("Unauthorized: Session may have expired.");
-        // Optional: Trigger a logout if 401 is received
-      }
-      
-      // Handle both backend styles: { message: "..." } or { error: "..." }
       const errorMessage = data?.message || data?.error || data || `HTTP Error ${response.status}`;
       throw new Error(errorMessage);
     }
     
-    // 5. Return parsed data
     return data; 
   } catch (error: any) {
     console.error(`[API Error] ${endpoint}:`, error.message);
