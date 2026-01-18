@@ -2,7 +2,7 @@ import { AuthUtils } from '../utils/auth';
 
 // 1. Separate the Server Root from the API Root
 // Using local IP for mobile device connectivity
-const SERVER_URL = 'http://192.168.18.7:5000';
+const SERVER_URL = 'http://192.168.101.10:5000';
 const BASE_URL = `${SERVER_URL}/api`;
 
 export const API_CONFIG = {

@@ -7,13 +7,14 @@ import {
   ScrollView, 
   ActivityIndicator, 
   TouchableOpacity, 
-  Dimensions 
+  Dimensions,
+  Alert,
+  StatusBar
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { apiCall, API_CONFIG } from '../../config/api'; 
+import { apiCall, API_CONFIG, getImageUrl } from '../../config/api'; 
 import { Ionicons } from '@expo/vector-icons';
-
-const { width } = Dimensions.get('window');
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VendorDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -21,162 +22,192 @@ export default function VendorDetailsScreen() {
   
   const [vendor, setVendor] = useState<any>(null);
   const [vendorServices, setVendorServices] = useState<any[]>([]);
+  const [reviewsData, setReviewsData] = useState<any>({ reviews: [], rating: 0, reviewCount: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchData();
-    }
+    if (id) fetchData();
   }, [id]);
 
- const fetchData = async () => {
-  try {
-    setLoading(true);
-    
-    // 1. Use .BROWSE instead of .ALL
-    // This results in: http://192.168.18.7:5000/api/vendors/68505...
-    const vendorData = await apiCall(`${API_CONFIG.ENDPOINTS.VENDORS.BROWSE}/${id}`);
-    setVendor(vendorData);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const role = await AsyncStorage.getItem('role');
+      setCurrentUserRole(role);
 
-    // 2. Use .BASE instead of .ALL for services
-    // This results in: http://192.168.18.7:5000/api/services
-    const allServices = await apiCall(API_CONFIG.ENDPOINTS.SERVICES.BASE);
-    
-    const specificServices = allServices.filter(
-      (service: any) => service.createdBy && service.createdBy._id === vendorData.userId?._id
-    );
-    
-    setVendorServices(specificServices);
-  } catch (error) {
-    console.error("Error fetching vendor details or services:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+      const vendorData = await apiCall(`${API_CONFIG.ENDPOINTS.VENDORS.BROWSE}/${id}`);
+      setVendor(vendorData);
 
-  const getImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/400';
-    // Using your backend IP
-    return `http://192.168.18.7:5000/${path}`;
+      try {
+        const reviews = await apiCall(`/vendors/${id}/reviews`);
+        setReviewsData(reviews);
+      } catch (e) { console.log("Reviews fail", e); }
+
+      const allServices = await apiCall(API_CONFIG.ENDPOINTS.SERVICES.BASE);
+      const specificServices = allServices.filter(
+        (s: any) => s.createdBy?._id === vendorData.userId?._id || s.createdBy === vendorData.userId?._id
+      );
+      setVendorServices(specificServices);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-      </View>
-    );
-  }
-
-  if (!vendor) {
-    return (
-      <View style={styles.center}>
-        <Text>Vendor not found</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={{color: '#fff'}}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#4F46E5" /></View>;
 
   const coverImage = vendorServices.length > 0 && vendorServices[0].images?.length > 0
     ? getImageUrl(vendorServices[0].images[0])
-    : 'https://via.placeholder.com/800x600?text=No+Image+Available';
+    : 'https://via.placeholder.com/800x600?text=No+Image';
 
   return (
-    <ScrollView style={styles.container} bounces={false}>
-      <View style={styles.imageContainer}>
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Fixed Back Button for better UX */}
+      <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
+
+      <ScrollView 
+        style={styles.container} 
+        bounces={true}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+      >
         <Image source={{ uri: coverImage }} style={styles.headerImage} />
-        <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.card}>
-        <View style={styles.headerRow}>
+        <View style={styles.card}>
+          <View style={styles.indicator} />
+          
           <Text style={styles.businessName}>{vendor.businessName}</Text>
-          {vendor.featured && (
-             <View style={styles.featuredBadge}>
-               <Text style={styles.featuredText}>Featured</Text>
-             </View>
-          )}
-        </View>
-        
-        <View style={styles.metaRow}>
-          <Ionicons name="location-outline" size={16} color="#64748B" />
-          <Text style={styles.locationText}>{vendor.location}</Text>
-          <View style={styles.ratingBadge}>
-            <Ionicons name="star" size={14} color="#EAB308" />
-            <Text style={styles.ratingText}>{vendor.rating || 0}</Text>
+          
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="location" size={16} color="#4F46E5" />
+              <Text style={styles.locationText}>{vendor.location}</Text>
+            </View>
+            <View style={styles.ratingBadge}>
+              <Ionicons name="star" size={14} color="#EAB308" />
+              <Text style={styles.ratingText}>{reviewsData.rating?.toFixed(1) || "0.0"}</Text>
+              <Text style={styles.reviewCount}>({reviewsData.reviewCount})</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Text style={styles.sectionTitle}>About</Text>
-        <Text style={styles.description}>
-          {vendor.description || "Professional service provider committed to making your event exceptional."}
-        </Text>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.description}>{vendor.description || "No description provided."}</Text>
 
-        <Text style={styles.sectionTitle}>Services Offered</Text>
-        
-        {vendorServices.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="images-outline" size={48} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No services listed yet.</Text>
-          </View>
-        ) : (
-          vendorServices.map((service) => (
+          <Text style={styles.sectionTitle}>Services Offered</Text>
+          {vendorServices.map((service) => (
             <View key={service._id} style={styles.serviceItem}>
-              {service.images && service.images.length > 0 && (
-                <Image 
-                  source={{ uri: getImageUrl(service.images[0]) }} 
-                  style={styles.serviceImage} 
-                />
+              {service.images?.length > 0 && (
+                <Image source={{ uri: getImageUrl(service.images[0]) }} style={styles.serviceImage} />
               )}
-              <View style={styles.serviceDetails}>
-                <Text style={styles.serviceType}>
-                  {service.serviceType ? service.serviceType.toUpperCase() : "SERVICE"}
-                </Text>
+              <View style={styles.serviceInfoCol}>
+                <Text style={styles.serviceType}>{service.serviceType}</Text>
                 <Text style={styles.servicePrice}>NPR {service.price}</Text>
-                <Text style={styles.serviceInfo} numberOfLines={2}>
-                  {service.description}
-                </Text>
               </View>
             </View>
-          ))
-        )}
-        <View style={{ height: 40 }} />
-      </View>
-    </ScrollView>
+          ))}
+
+          {/* REVIEWS SECTION */}
+          <View style={styles.reviewSectionHeader}>
+            <Text style={styles.sectionTitle}>Customer Feedback</Text>
+            <Text style={styles.seeAllReviews}>Recent</Text>
+          </View>
+
+          {reviewsData.reviews?.length === 0 ? (
+            <View style={styles.emptyReviewBox}>
+              <Text style={styles.emptyReviewText}>Be the first to review this vendor!</Text>
+            </View>
+          ) : (
+            reviewsData.reviews.map((rev: any) => (
+              <View key={rev._id} style={styles.reviewCard}>
+                <View style={styles.reviewTop}>
+                  <View style={styles.reviewUserCircle}>
+                    <Text style={styles.userInitial}>{rev.user?.name?.charAt(0) || 'U'}</Text>
+                  </View>
+                  <View style={styles.reviewUserInfo}>
+                    <Text style={styles.reviewerName}>{rev.user?.name || "Customer"}</Text>
+                    <View style={styles.starRow}>
+                       {[...Array(5)].map((_, i) => (
+                         <Ionicons key={i} name="star" size={10} color={i < rev.rating ? "#EAB308" : "#E2E8F0"} />
+                       ))}
+                    </View>
+                  </View>
+                  <Text style={styles.reviewDate}>{new Date(rev.date).toLocaleDateString()}</Text>
+                </View>
+                <Text style={styles.reviewComment}>{rev.comment}</Text>
+              </View>
+            ))
+          )}
+
+          <View style={{ height: 160 }} />
+        </View>
+      </ScrollView>
+
+      {/* Book Now Bar */}
+      {currentUserRole !== 'vendor' && (
+        <View style={styles.bottomBar}>
+          <View>
+            <Text style={styles.priceLabel}>Starting from</Text>
+            <Text style={styles.priceValue}>NPR {vendor.priceRange?.min || '0'}</Text>
+          </View>
+          <TouchableOpacity style={styles.bookBtn} onPress={() => router.push({ pathname: "/create-booking", params: { vendorId: vendor._id, businessName: vendor.businessName } })}>
+            <Text style={styles.bookBtnText}>Book Now</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F1F5F9' },
+  mainContainer: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  imageContainer: { width: '100%', height: 300, position: 'relative' },
-  headerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  backArrow: { position: 'absolute', top: 50, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 20 },
-  card: { marginTop: -30, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, minHeight: 500 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  businessName: { fontSize: 24, fontWeight: '900', color: '#1E293B', flex: 1 },
-  featuredBadge: { backgroundColor: '#F59E0B', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  featuredText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  locationText: { marginLeft: 4, color: '#64748B', fontSize: 14, marginRight: 15 },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF9C3', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  ratingText: { marginLeft: 4, fontWeight: 'bold', color: '#854D0E' },
-  divider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 12 },
-  description: { fontSize: 14, color: '#475569', lineHeight: 22, marginBottom: 20 },
-  serviceItem: { flexDirection: 'row', backgroundColor: '#F8FAFC', borderRadius: 16, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
-  serviceImage: { width: 80, height: 80, borderRadius: 12 },
-  serviceDetails: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  serviceType: { fontSize: 11, fontWeight: '700', color: '#4F46E5' },
-  servicePrice: { fontSize: 16, fontWeight: '800', color: '#1E293B' },
-  serviceInfo: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  emptyState: { alignItems: 'center', padding: 40 },
-  emptyText: { color: '#94A3B8', marginTop: 10 },
-  backBtn: { marginTop: 20, backgroundColor: '#4F46E5', padding: 12, borderRadius: 8 }
+  headerImage: { width: '100%', height: 350 },
+  backArrow: { position: 'absolute', top: 50, left: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.3)', padding: 10, borderRadius: 25 },
+  card: { marginTop: -40, backgroundColor: '#fff', borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingHorizontal: 25, paddingTop: 15 },
+  indicator: { width: 40, height: 5, backgroundColor: '#E2E8F0', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
+  businessName: { fontSize: 26, fontWeight: 'bold', color: '#1E293B' },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+  metaItem: { flexDirection: 'row', alignItems: 'center' },
+  locationText: { marginLeft: 5, color: '#64748B', fontSize: 14 },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF9C3', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  ratingText: { marginLeft: 4, fontWeight: 'bold', color: '#854D0E', fontSize: 14 },
+  reviewCount: { fontSize: 12, color: '#854D0E', opacity: 0.6, marginLeft: 2 },
+  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 25 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B', marginBottom: 15 },
+  description: { fontSize: 15, color: '#64748B', lineHeight: 24, marginBottom: 25 },
+  serviceItem: { flexDirection: 'row', marginBottom: 15, backgroundColor: '#F8FAFC', borderRadius: 20, padding: 12 },
+  serviceImage: { width: 70, height: 70, borderRadius: 15 },
+  serviceInfoCol: { flex: 1, marginLeft: 15, justifyContent: 'center' },
+  serviceType: { fontSize: 12, color: '#4F46E5', fontWeight: 'bold', textTransform: 'uppercase' },
+  servicePrice: { fontSize: 18, fontWeight: 'bold', color: '#1E293B', marginTop: 2 },
+  
+  // REVIEW STYLES
+  reviewSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 },
+  seeAllReviews: { color: '#64748B', fontSize: 12 },
+  reviewCard: { backgroundColor: '#fff', padding: 15, borderRadius: 15, marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  reviewTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  reviewUserCircle: { width: 35, height: 35, borderRadius: 18, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
+  userInitial: { color: '#4F46E5', fontWeight: 'bold' },
+  reviewUserInfo: { flex: 1, marginLeft: 12 },
+  reviewerName: { fontSize: 14, fontWeight: 'bold', color: '#1E293B' },
+  starRow: { flexDirection: 'row', marginTop: 2 },
+  reviewDate: { fontSize: 11, color: '#94A3B8' },
+  reviewComment: { fontSize: 14, color: '#475569', lineHeight: 20 },
+  emptyReviewBox: { padding: 30, alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 20 },
+  emptyReviewText: { color: '#94A3B8', fontSize: 13 },
+
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', flexDirection: 'row', padding: 25, paddingBottom: 40, borderTopWidth: 1, borderTopColor: '#F1F5F9', justifyContent: 'space-between', alignItems: 'center' },
+  priceLabel: { fontSize: 12, color: '#64748B' },
+  priceValue: { fontSize: 20, fontWeight: 'bold', color: '#1E293B' },
+  bookBtn: { backgroundColor: '#4F46E5', paddingHorizontal: 35, paddingVertical: 16, borderRadius: 16 },
+  bookBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });
