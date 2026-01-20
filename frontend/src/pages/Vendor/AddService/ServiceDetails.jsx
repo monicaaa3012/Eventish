@@ -13,14 +13,14 @@ const ServiceDetails = () => {
   useEffect(() => {
     const fetchServiceDetails = async () => {
       try {
-        const response = await fetch(`/api/services/${serviceId}`)
+        const response = await fetch(`http://localhost:5000/api/services/${serviceId}`)
         if (response.ok) {
           const serviceData = await response.json()
           setService(serviceData)
 
           // Fetch vendor details
           if (serviceData.createdBy) {
-            const vendorResponse = await fetch(`/api/vendors/user/${serviceData.createdBy._id}`)
+            const vendorResponse = await fetch(`http://localhost:5000/api/vendors/user/${serviceData.createdBy._id}`)
             if (vendorResponse.ok) {
               const vendorData = await vendorResponse.json()
               setVendor(vendorData)
@@ -59,7 +59,7 @@ const ServiceDetails = () => {
     }
     // Remove leading slash if present to avoid double slashes
     const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath
-    return `/${cleanPath}`
+    return `http://localhost:5000/${cleanPath}`
   }
 
   if (loading) {
@@ -283,6 +283,52 @@ const ServiceDetails = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Booking Section */}
+            <div className="border-t pt-6 mt-6 mb-6">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Book This Service</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-gray-600 mb-2">
+                      Interested in this service? Contact the vendor to discuss your requirements and get a personalized quote.
+                    </p>
+                    <div className="text-3xl font-bold text-purple-600">
+                      NPR {service.price}
+                    </div>
+                    <p className="text-sm text-gray-500">Starting price</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      const token = localStorage.getItem("token")
+                      if (!token) {
+                        navigate("/login")
+                      } else {
+                        // Navigate to vendor details for booking
+                        if (vendor) {
+                          navigate(`/vendors/${vendor._id}`)
+                        }
+                      }
+                    }}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  >
+                    Book Now
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (vendor) {
+                        navigate(`/vendors/${vendor._id}`)
+                      }
+                    }}
+                    className="px-6 py-3 border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-xl font-semibold transition-all duration-300"
+                  >
+                    View Vendor
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Vendor Info */}

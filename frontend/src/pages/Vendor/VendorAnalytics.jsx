@@ -226,6 +226,122 @@ const VendorAnalytics = () => {
           </div>
         </div>
 
+        {/* Service Performance */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Service Performance</h2>
+          
+          {/* Top Performing Service Highlight */}
+          {analytics?.topPerformingService && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 mb-6 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800 mb-2">🏆 Top Performing Service</h3>
+                  <p className="text-2xl font-bold text-green-700 capitalize mb-1">
+                    {analytics.topPerformingService.name}
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-green-600">
+                    <div>
+                      <span className="font-medium">Bookings:</span> {analytics.topPerformingService.bookingCount}
+                    </div>
+                    <div>
+                      <span className="font-medium">Revenue:</span> {formatSimpleNPR(analytics.topPerformingService.revenue)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Completion:</span> {analytics.topPerformingService.completionRate}%
+                    </div>
+                    <div>
+                      <span className="font-medium">Score:</span> {analytics.topPerformingService.performanceScore}/100
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Service Performance Ranking */}
+          {analytics?.servicePerformance && analytics.servicePerformance.length > 0 ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Service Performance Ranking</h3>
+              <div className="space-y-4">
+                {analytics.servicePerformance.map((service, index) => (
+                  <div 
+                    key={index} 
+                    className={`p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${
+                      index === 0 
+                        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
+                        : index === 1 
+                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+                        : index === 2
+                        ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                          index === 0 
+                            ? 'bg-green-500 text-white' 
+                            : index === 1 
+                            ? 'bg-blue-500 text-white'
+                            : index === 2
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-400 text-white'
+                        }`}>
+                          #{service.rank}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800 capitalize">
+                            {service.serviceName}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            Performance Score: <span className="font-medium">{service.performanceScore}/100</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-lg font-bold ${
+                          index === 0 ? 'text-green-600' : index === 1 ? 'text-blue-600' : index === 2 ? 'text-orange-600' : 'text-gray-600'
+                        }`}>
+                          {service.bookingCount} bookings
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <p className="text-gray-500 text-xs uppercase tracking-wide">Revenue</p>
+                        <p className="font-semibold text-gray-800">{formatSimpleNPR(service.revenue)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 text-xs uppercase tracking-wide">Completed</p>
+                        <p className="font-semibold text-gray-800">{service.completedBookings}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 text-xs uppercase tracking-wide">Completion Rate</p>
+                        <p className="font-semibold text-gray-800">{service.completionRate}%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 text-xs uppercase tracking-wide">Avg Price</p>
+                        <p className="font-semibold text-gray-800">{formatSimpleNPR(service.averagePrice)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-white/20 text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">No Service Data Available</h3>
+              <p className="text-gray-500">Start adding services and getting bookings to see performance analytics.</p>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   )

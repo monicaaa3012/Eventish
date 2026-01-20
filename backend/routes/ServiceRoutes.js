@@ -1,4 +1,5 @@
 import express from "express"
+import mongoose from "mongoose"
 import multer from "multer"
 import path from "path"
 import fs from "fs"
@@ -84,8 +85,28 @@ const addService = async (req, res) => {
 // Get all services
 const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find().populate("createdBy", "name email").sort({ createdAt: -1 })
-    res.json(services)
+    const services = await Service.find()
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 })
+    
+    // Get vendor information for each service
+    const servicesWithVendorInfo = await Promise.all(
+      services.map(async (service) => {
+        const vendor = await mongoose.model("Vendor").findOne({ userId: service.createdBy._id })
+        return {
+          ...service.toObject(),
+          vendorId: vendor ? {
+            _id: vendor._id,
+            businessName: vendor.businessName,
+            location: vendor.location,
+            rating: vendor.rating,
+            reviewCount: vendor.reviewCount
+          } : null
+        }
+      })
+    )
+    
+    res.json(servicesWithVendorInfo)
   } catch (err) {
     console.error("Error fetching services:", err)
     res.status(500).json({ error: "Failed to fetch services" })
@@ -107,13 +128,28 @@ const getUserServices = async (req, res) => {
 const getServiceById = async (req, res) => {
   try {
     const { id } = req.params
-    const service = await Service.findById(id).populate("createdBy", "name email")
+    const service = await Service.findById(id)
+      .populate("createdBy", "name email")
 
     if (!service) {
       return res.status(404).json({ error: "Service not found" })
     }
 
-    res.json(service)
+    // Get vendor information
+    const vendor = await mongoose.model("Vendor").findOne({ userId: service.createdBy._id })
+    
+    const serviceWithVendorInfo = {
+      ...service.toObject(),
+      vendorId: vendor ? {
+        _id: vendor._id,
+        businessName: vendor.businessName,
+        location: vendor.location,
+        rating: vendor.rating,
+        reviewCount: vendor.reviewCount
+      } : null
+    }
+
+    res.json(serviceWithVendorInfo)
   } catch (err) {
     console.error("Error fetching service:", err)
     res.status(500).json({ error: "Failed to fetch service" })

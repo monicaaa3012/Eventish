@@ -27,7 +27,7 @@ const VendorDetails = () => {
 
   const fetchVendorDetails = async () => {
     try {
-      const response = await fetch(`/api/vendors/${id}`)
+      const response = await fetch(`http://localhost:5000/api/vendors/${id}`)
       if (response.ok) {
         const data = await response.json()
         setVendor(data)
@@ -41,7 +41,7 @@ const VendorDetails = () => {
 
   const fetchVendorServices = async () => {
     try {
-      const response = await fetch("/api/services")
+      const response = await fetch("http://localhost:5000/api/services")
       if (response.ok) {
         const allServices = await response.json()
         // Filter services by this vendor's userId
@@ -67,9 +67,13 @@ const VendorDetails = () => {
   const fetchUserEvents = async () => {
     try {
       const token = localStorage.getItem("token")
-      if (!token) return
+      if (!token) {
+        // User not logged in, skip fetching events
+        setUserEvents([])
+        return
+      }
 
-      const response = await fetch("/api/events/my-events", {
+      const response = await fetch("http://localhost:5000/api/events/my-events", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,6 +84,7 @@ const VendorDetails = () => {
       }
     } catch (error) {
       console.error("Error fetching user events:", error)
+      setUserEvents([])
     }
   }
 
@@ -93,7 +98,7 @@ const VendorDetails = () => {
         return
       }
 
-      const response = await fetch("/api/bookings", {
+      const response = await fetch("http://localhost:5000/api/bookings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,6 +127,13 @@ const VendorDetails = () => {
   }
 
   const handleBookingRequest = async () => {
+    const token = localStorage.getItem("token")
+    
+    if (!token) {
+      navigate("/login")
+      return
+    }
+    
     if (isRequestSent){
       navigate('/bookings');
       return;
@@ -155,7 +167,7 @@ const VendorDetails = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Vendor not found</h1>
-          <button onClick={() => navigate("/vendors")} className="bg-primary-gradient text-white px-6 py-3 rounded-lg">
+          <button onClick={() => navigate(-1)} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg">
             Back to Vendors
           </button>
         </div>
@@ -168,7 +180,7 @@ const VendorDetails = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate("/vendors")}
+          onClick={() => navigate(-1)}
           className="mb-6 flex items-center text-purple-600 hover:text-purple-800 font-medium"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,9 +243,12 @@ const VendorDetails = () => {
                     {vendor.portfolio.map((image, index) => (
                       <div key={index} className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
                         <img
-                          src={image || "/placeholder.svg"}
+                          src={image?.startsWith('http') ? image : `http://localhost:5000/${image}` || "/placeholder.svg"}
                           alt={`Portfolio ${index + 1}`}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                          }}
                         />
                       </div>
                     ))}
@@ -294,12 +309,11 @@ const VendorDetails = () => {
                                 }`}
                               >
                                 <img
-                                  // eslint-disable-next-line no-constant-binary-expression
-                                  src={`http://localhost:5000/${image}` || "/placeholder.svg"}
+                                  src={image?.startsWith('http') ? image : `http://localhost:5000/${image}` || "/placeholder.svg"}
                                   alt={`Service ${index + 1}`}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   onError={(e) => {
-                                    e.target.src = "/placeholder.svg"
+                                    e.target.style.display = 'none'
                                   }}
                                 />
                               </div>
@@ -491,7 +505,7 @@ const VendorDetails = () => {
     className={`w-full text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
       isRequestSent 
         ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700' 
-        : 'bg-primary-gradient transform hover:scale-105 shadow-lg hover:shadow-xl'
+        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
     }`}
   >
     {isRequestSent ? 'View My Bookings' : 'Send Booking Request'}
@@ -546,7 +560,7 @@ const VendorDetails = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-primary-gradient text-white px-4 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-medium"
                 >
                   Send Request
                 </button>

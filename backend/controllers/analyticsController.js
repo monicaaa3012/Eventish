@@ -133,6 +133,42 @@ export const getVendorAnalytics = async (req, res) => {
       }
     ])
 
+    // 3. Service Performance Analytics
+    const servicePerformance = await Booking.aggregate([
+      {
+        $match: { vendorId: vendorId }
+      },
+      {
+        $lookup: {
+          from: "services",
+          localField: "serviceId",
+          foreignField: "_id",
+          as: "service"
+        }
+      },
+      {
+        $unwind: { path: "$service", preserveNullAndEmptyArrays: true }
+      },
+      {
+        $group: {
+          _id: {
+            serviceId: "$serviceId",
+            serviceType: "$service.serviceType",
+            description: "$service.description"
+          },
+          bookingCount: { $sum: 1 },
+          revenue: { $sum: "$servicePrice" },
+          completedBookings: {
+            $sum: { $cond: [{ $eq: ["$status", "Completed"] }, 1, 0] }
+          },
+          averagePrice: { $avg: "$servicePrice" }
+        }
+      },
+      {
+        $sort: { bookingCount: -1 }
+      }
+    ])
+
     // Calculate derived metrics
     const bookings = bookingStats[0] || {}
     const revenue = revenueData[0] || {}
@@ -150,6 +186,36 @@ export const getVendorAnalytics = async (req, res) => {
     const monthlyRevenueGrowth = revenue.lastMonthRevenue > 0 
       ? ((revenue.thisMonthRevenue - revenue.lastMonthRevenue) / revenue.lastMonthRevenue * 100)
       : 0
+
+    // Find top performing service and calculate performance scores
+    const topPerformingService = servicePerformance[0] || null
+    const servicesWithScores = servicePerformance.map((service, index) => {
+      // Calculate performance score based on bookings, revenue, and completion rate
+      const completionRate = service.bookingCount > 0 ? (service.completedBookings / service.bookingCount) * 100 : 0
+      const revenueWeight = 0.4
+      const bookingWeight = 0.4
+      const completionWeight = 0.2
+      
+      // Normalize scores (using max values from the dataset)
+      const maxBookings = servicePerformance[0]?.bookingCount || 1
+      const maxRevenue = Math.max(...servicePerformance.map(s => s.revenue || 0)) || 1
+      
+      const normalizedBookings = (service.bookingCount / maxBookings) * 100
+      const normalizedRevenue = ((service.revenue || 0) / maxRevenue) * 100
+      
+      const performanceScore = (
+        (normalizedBookings * bookingWeight) +
+        (normalizedRevenue * revenueWeight) +
+        (completionRate * completionWeight)
+      ).toFixed(1)
+
+      return {
+        ...service,
+        completionRate: completionRate.toFixed(1),
+        performanceScore: parseFloat(performanceScore),
+        rank: index + 1
+      }
+    })
 
     // Calculate active bookings to match VendorDashboard logic
     // Active bookings = Total - (Completed + Cancelled + Rejected)
@@ -178,7 +244,30 @@ export const getVendorAnalytics = async (req, res) => {
 
       // Review metrics
       averageRating: vendor.rating || 0,
-      totalReviews: vendor.reviewCount || 0
+      totalReviews: vendor.reviewCount || 0,
+
+      // Service performance metrics
+      topPerformingService: topPerformingService ? {
+        name: topPerformingService._id.serviceType || topPerformingService._id.description || 'Unknown Service',
+        bookingCount: topPerformingService.bookingCount,
+        revenue: topPerformingService.revenue || 0,
+        completionRate: servicesWithScores[0]?.completionRate || 0,
+        performanceScore: servicesWithScores[0]?.performanceScore || 0
+      } : null,
+      
+      servicePerformance: servicesWithScores.map(service => ({
+        serviceName: service._id.serviceType || service._id.description || 'Unknown Service',
+        serviceType: service._id.serviceType,
+        bookingCount: service.bookingCount,
+        revenue: service.revenue || 0,
+        completedBookings: service.completedBookings,
+        completionRate: service.completionRate,
+        performanceScore: service.performanceScore,
+        rank: service.rank,
+        averagePrice: service.averagePrice || 0
+      })),
+
+      totalServices: servicePerformance.length
     }
 
     console.log("Final analytics data:", analytics)

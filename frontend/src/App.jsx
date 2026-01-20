@@ -30,6 +30,11 @@ import PaymentSuccess from "./pages/PaymentSuccess"
 import PaymentFailure from "./pages/PaymentFailure"
 import EsewaSuccess from "./pages/payment/EsewaSuccess"
 import EsewaFailure from "./pages/payment/EsewaFailure"
+// Public pages
+import Venues from "./pages/public/Venues"
+import Services from "./pages/public/Services"
+import About from "./pages/public/About"
+import Contact from "./pages/public/Contact"
 
 const App = () => {
   return (
@@ -38,6 +43,12 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<GeneralDashboard />} />
+          <Route path="/venues" element={<Venues />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/vendors/:id" element={<VendorDetails />} />
+          <Route path="/services/:serviceId" element={<ServiceDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -137,14 +148,6 @@ const App = () => {
             }
           />
           <Route
-            path="/vendors/:id"
-            element={
-              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
-                <VendorDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/vendors/:id/reviews"
             element={
               <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
@@ -161,15 +164,6 @@ const App = () => {
                 </ProtectedRoute>
           }   
           />  
-   
-          <Route
-            path="/services/:serviceId"
-            element={
-              <ProtectedRoute allowedRoles={["user", "vendor", "admin"]}>
-                <ServiceDetails />
-              </ProtectedRoute>
-            }
-          />
           {/* Add Edit Service Route */}
           <Route
             path="/edit-service/:serviceId"
