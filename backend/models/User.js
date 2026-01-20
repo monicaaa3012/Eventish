@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "vendor", "admin"],
       default: "user",
     },
+    wishlist: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor" 
+    }]
   },
   { timestamps: true },
 )

@@ -48,7 +48,8 @@ export const getCurrentVendorBookings = async (req, res) => {
     const vendor = await Vendor.findOne({ userId: req.user.id })
 
     if (!vendor) {
-      return res.status(404).json({ message: "Vendor profile not found" })
+      // Return empty array if vendor profile doesn't exist yet
+      return res.json([])
     }
 
     const bookings = await Booking.find({ vendorId: vendor._id })

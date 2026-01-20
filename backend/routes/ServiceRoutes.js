@@ -1,5 +1,4 @@
 import express from "express"
-import mongoose from "mongoose"
 import multer from "multer"
 import path from "path"
 import fs from "fs"
@@ -44,69 +43,45 @@ const upload = multer({
 // Add service
 const addService = async (req, res) => {
   try {
-    // Check if files were uploaded
+    // Check files
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "At least one image is required" })
+      return res.status(400).json({ error: "At least one image is required" });
     }
 
-    const imagePaths = req.files.map((file) => file.path)
-    const { description, price, serviceType } = req.body
+    const imagePaths = req.files.map((file) => file.path);
+    
+    // 2. EXTRACT TITLE FROM REQ.BODY
+    const { title, description, price, serviceType } = req.body;
 
-    // Validate required fields
-    if (!description || !price || !serviceType) {
-      return res.status(400).json({ error: "Description, price, and service type are required" })
+    // 3. VALIDATE TITLE
+    if (!title || !description || !price || !serviceType) {
+      return res.status(400).json({ error: "All fields (title, description, price, type) are required" });
     }
 
-    // Validate price
-    const numericPrice = Number.parseFloat(price)
-    if (isNaN(numericPrice) || numericPrice < 0) {
-      return res.status(400).json({ error: "Price must be a valid positive number" })
-    }
+    const numericPrice = Number.parseFloat(price);
 
     const newService = new Service({
+      title,          // 4. PASS TITLE TO MONGOOSE
       images: imagePaths,
       description,
       price: numericPrice,
-      serviceType,
+      serviceType: serviceType.toLowerCase(),
       createdBy: req.user.id,
-    })
+    });
 
-    await newService.save()
-    res.status(201).json({
-      message: "Service created successfully",
-      service: newService,
-    })
+    await newService.save();
+    res.status(201).json({ message: "Service created successfully", service: newService });
   } catch (err) {
-    console.error("Error adding service:", err)
-    res.status(500).json({ error: "Something went wrong while adding the service" })
+    console.error("Error adding service:", err);
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 // Get all services
 const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find()
-      .populate("createdBy", "name email")
-      .sort({ createdAt: -1 })
-    
-    // Get vendor information for each service
-    const servicesWithVendorInfo = await Promise.all(
-      services.map(async (service) => {
-        const vendor = await mongoose.model("Vendor").findOne({ userId: service.createdBy._id })
-        return {
-          ...service.toObject(),
-          vendorId: vendor ? {
-            _id: vendor._id,
-            businessName: vendor.businessName,
-            location: vendor.location,
-            rating: vendor.rating,
-            reviewCount: vendor.reviewCount
-          } : null
-        }
-      })
-    )
-    
-    res.json(servicesWithVendorInfo)
+    const services = await Service.find().populate("createdBy", "name email").sort({ createdAt: -1 })
+    res.json(services)
   } catch (err) {
     console.error("Error fetching services:", err)
     res.status(500).json({ error: "Failed to fetch services" })
@@ -128,28 +103,13 @@ const getUserServices = async (req, res) => {
 const getServiceById = async (req, res) => {
   try {
     const { id } = req.params
-    const service = await Service.findById(id)
-      .populate("createdBy", "name email")
+    const service = await Service.findById(id).populate("createdBy", "name email")
 
     if (!service) {
       return res.status(404).json({ error: "Service not found" })
     }
 
-    // Get vendor information
-    const vendor = await mongoose.model("Vendor").findOne({ userId: service.createdBy._id })
-    
-    const serviceWithVendorInfo = {
-      ...service.toObject(),
-      vendorId: vendor ? {
-        _id: vendor._id,
-        businessName: vendor.businessName,
-        location: vendor.location,
-        rating: vendor.rating,
-        reviewCount: vendor.reviewCount
-      } : null
-    }
-
-    res.json(serviceWithVendorInfo)
+    res.json(service)
   } catch (err) {
     console.error("Error fetching service:", err)
     res.status(500).json({ error: "Failed to fetch service" })
@@ -242,8 +202,8 @@ const deleteService = async (req, res) => {
 router.post("/add", protect, upload.array("images", 4), addService)
 router.get("/", getAllServices)
 router.get("/my-services", protect, getUserServices)
-router.get("/:id", getServiceById)
 router.put("/:id", protect, upload.array("images", 4), updateService)
+router.get("/:id", getServiceById)
 router.delete("/:id", protect, deleteService)
 
 export default router

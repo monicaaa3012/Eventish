@@ -1,6 +1,7 @@
 import Event from "../models/Event.js"
 import Vendor from "../models/Vendor.js"
 import Service from "../models/ServiceModel.js"
+import User from "../models/User.js";
 
 // Jaccard Similarity Algorithm
 const jaccardSimilarity = (setA, setB) => {
@@ -393,3 +394,89 @@ export const getRecommendations = async (req, res) => {
     res.status(500).json({ message: "Server error in recommendations" })
   }
 }
+// ... keep all your existing Jaccard logic above ...
+
+export const toggleWishlist = async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    const userId = req.user.id; // From your auth middleware
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Initialize wishlist if it doesn't exist
+    if (!user.wishlist) user.wishlist = [];
+
+    const index = user.wishlist.indexOf(vendorId);
+    
+    if (index > -1) {
+      // Already saved? Remove it (Unfavorite)
+      user.wishlist.splice(index, 1);
+      await user.save();
+      return res.json({ 
+        success: true, 
+        message: "Removed from favorites", 
+        isSaved: false 
+      });
+    } else {
+      // Not saved? Add it (Favorite)
+      user.wishlist.push(vendorId);
+      await user.save();
+      return res.json({ 
+        success: true, 
+        message: "Saved to favorites", 
+        isSaved: true 
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Action failed", error: err.message });
+  }
+};
+export const getWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const vendors = await Vendor.find({ _id: { $in: user.wishlist || [] } });
+
+    const enrichedWishlist = await Promise.all(vendors.map(async (vendor) => {
+      const vendorObj = vendor.toObject();
+      
+      // Get ALL services to calculate the range
+      const services = await Service.find({ createdBy: vendor.userId });
+      
+      let minPrice = 0;
+      let maxPrice = 0;
+      let displayImage = null;
+
+      if (services.length > 0) {
+        const prices = services.map(s => s.price);
+        minPrice = Math.min(...prices);
+        maxPrice = Math.max(...prices);
+        
+        // Take the image from the first service that actually has images
+        const serviceWithImage = services.find(s => s.images && s.images.length > 0);
+        if (serviceWithImage) {
+          displayImage = serviceWithImage.images[0];
+        }
+      }
+
+      return {
+        ...vendorObj,
+        minPrice,
+        maxPrice,
+        displayImage,
+        serviceCount: services.length
+      };
+    }));
+
+    res.json({
+      success: true,
+      wishlist: enrichedWishlist
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch wishlist", error: err.message });
+  }
+};
+

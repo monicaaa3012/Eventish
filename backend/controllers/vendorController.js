@@ -30,12 +30,12 @@ export const createVendorProfile = async (req, res) => {
     res.status(500).json({ message: "Error creating vendor profile", error: error.message })
   }
 }
-
 export const getAllVendors = async (req, res) => {
   try {
     const {
       service,
       location,
+      search, // We added this specifically for the search bar
       minPrice,
       maxPrice,
       rating,
@@ -45,60 +45,58 @@ export const getAllVendors = async (req, res) => {
       sortOrder = "desc",
     } = req.query
 
-    console.log("getAllVendors called with filters:", { service, location, minPrice, maxPrice, rating, page, limit })
-
     const filter = {}
 
+    // 1. Unified Search (Business Name OR Location OR Description)
+    // This is what the search bar in your app will trigger
+    if (search) {
+      filter.$or = [
+        { businessName: { $regex: search, $options: "i" } },
+        { location: { $regex: search, $options: "i" } },
+        { companyName: { $regex: search, $options: "i" } },
+        { bio: { $regex: search, $options: "i" } }
+      ]
+    }
+
+    // 2. Service Category Filtering
     if (service) {
       try {
-        // Find vendors who have created services with the specified serviceType
         const Service = (await import("../models/ServiceModel.js")).default
         const servicesWithType = await Service.find({ serviceType: service }).distinct("createdBy")
-        
-        console.log(`Found ${servicesWithType.length} vendors with service type: ${service}`)
         
         if (servicesWithType.length > 0) {
           filter.userId = { $in: servicesWithType }
         } else {
-          // If no services found with this type, return no results
           filter._id = { $in: [] }
         }
       } catch (error) {
-        console.error("Error filtering by service type:", error)
-        // Return no results if there's an error
         filter._id = { $in: [] }
       }
     }
 
-    if (location) {
+    // 3. Specific Location Filtering (if user uses a location-specific filter)
+    if (location && !search) {
       filter.location = { $regex: location, $options: "i" }
     }
 
+    // 4. Price & Rating
     if (minPrice || maxPrice) {
-      if (minPrice) {
-        filter["priceRange.max"] = { $gte: Number.parseInt(minPrice) }
-      }
-      if (maxPrice) {
-        filter["priceRange.min"] = { $lte: Number.parseInt(maxPrice) }
-      }
+      if (minPrice) filter["priceRange.max"] = { $gte: Number.parseInt(minPrice) }
+      if (maxPrice) filter["priceRange.min"] = { $lte: Number.parseInt(maxPrice) }
     }
 
     if (rating) {
       filter.rating = { $gte: Number.parseFloat(rating) }
     }
 
-    // Always filter to show only verified vendors for public browsing
-    filter.verified = true
-    
-    console.log("Final filter:", filter)
+    // Verification filtering - can be overridden with includeUnverified=true
+    const includeUnverified = req.query.includeUnverified === 'true'
+    if (!includeUnverified) {
+      filter.verified = true
+    }
 
     const sort = {}
     sort[sortBy] = sortOrder === "desc" ? -1 : 1
-
-    const totalVendorsInDB = await Vendor.countDocuments({})
-    const totalVerifiedVendors = await Vendor.countDocuments({ verified: true })
-    console.log(`Total vendors in database: ${totalVendorsInDB}`)
-    console.log(`Total verified vendors: ${totalVerifiedVendors}`)
 
     const vendors = await Vendor.find(filter)
       .populate("userId", "name email")
@@ -107,8 +105,6 @@ export const getAllVendors = async (req, res) => {
       .skip((page - 1) * limit)
 
     const total = await Vendor.countDocuments(filter)
-
-    console.log(`Found ${vendors.length} vendors matching filter, total: ${total}`)
 
     res.json({
       vendors,
@@ -120,6 +116,7 @@ export const getAllVendors = async (req, res) => {
     res.status(500).json({ message: "Error fetching vendors", error: error.message })
   }
 }
+
 
 export const getVendorById = async (req, res) => {
   try {
@@ -187,16 +184,22 @@ export const updateVendorProfile = async (req, res) => {
 
       console.log("Creating new vendor profile...")
       
+      // Auto-verify if profile has essential information
+      const isComplete = businessName && businessName !== "My Business" && 
+                        location && location !== "Not specified" && 
+                        priceRange && priceRange.min >= 0 && priceRange.max > priceRange.min
+      
       vendor = new Vendor({
         userId: req.user.id,
         businessName,
         location,
         priceRange,
+        verified: isComplete, // Auto-verify complete profiles
         ...req.body,
       })
 
       const savedVendor = await vendor.save()
-      console.log("Vendor created successfully:", savedVendor._id)
+      console.log("Vendor created successfully:", savedVendor._id, "Verified:", isComplete)
       
       const populatedVendor = await Vendor.findById(savedVendor._id).populate("userId", "name email")
 
@@ -206,7 +209,22 @@ export const updateVendorProfile = async (req, res) => {
     // Update existing vendor profile
     console.log("Updating existing vendor profile:", vendor._id)
     
-    const updatedVendor = await Vendor.findByIdAndUpdate(vendor._id, req.body, { new: true, runValidators: true }).populate(
+    // Auto-verify if profile becomes complete
+    const updatedData = { ...req.body }
+    const businessName = updatedData.businessName || vendor.businessName
+    const location = updatedData.location || vendor.location
+    const priceRange = updatedData.priceRange || vendor.priceRange
+    
+    const isComplete = businessName && businessName !== "My Business" && 
+                      location && location !== "Not specified" && 
+                      priceRange && priceRange.min >= 0 && priceRange.max > priceRange.min
+    
+    if (isComplete && !vendor.verified) {
+      updatedData.verified = true
+      console.log("Auto-verifying vendor due to complete profile")
+    }
+    
+    const updatedVendor = await Vendor.findByIdAndUpdate(vendor._id, updatedData, { new: true, runValidators: true }).populate(
       "userId",
       "name email",
     )

@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 
 const serviceSchema = new mongoose.Schema(
-  {
+  { 
+    
+    title: {          // ADD THIS
+      type: String,
+      required: true,
+    },
     images: {
       type: [String],
       required: true,
@@ -21,11 +26,36 @@ const serviceSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
+        "venue",
         "catering",
         "decoration",
         "photography",
+        "videography",
         "music",
-        "makeup"
+        "dj",
+        "band",
+        "makeup",
+        "hair",
+        "fashion",
+        "jewelry",
+        "flowers",
+        "lighting",
+        "sound",
+        "transport",
+        "security",
+        "cleaning",
+        "planning",
+        "coordination",
+        "entertainment",
+        "mc",
+        "dance",
+        "bartending",
+        "cake",
+        "desserts",
+        "printing",
+        "invitations",
+        "gifts",
+        "favors"
       ],
     },
 
@@ -33,6 +63,7 @@ const serviceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
   },
   { timestamps: true }
