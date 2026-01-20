@@ -35,7 +35,13 @@ export const getMyReviews = async (req, res) => {
       .select('reviews rating reviewCount businessName')
     
     if (!vendor) {
-      return res.status(404).json({ message: "Vendor profile not found" })
+      // Return empty reviews if vendor profile doesn't exist yet
+      return res.json({
+        reviews: [],
+        rating: 0,
+        reviewCount: 0,
+        businessName: ""
+      })
     }
 
     res.json({

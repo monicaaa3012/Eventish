@@ -1,13 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router'; // 1. Import Router
+import { useRouter } from 'expo-router';
+import { AuthUtils } from '../../utils/auth';
+import { getPopularCategories } from '../../config/serviceCategories';
 
 export default function ExploreScreen() {
   const [search, setSearch] = useState('');
-  const router = useRouter(); // 2. Initialize Router
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
 
-  const categories = ['Photography', 'Catering', 'Music', 'Venues', 'Decor'];
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const role = await AuthUtils.getRole();
+        setUserRole(role?.toLowerCase() || null);
+        
+        // Redirect admins away from explore screen
+        if (role?.toLowerCase() === 'admin') {
+          router.replace('/(tabs)');
+          return;
+        }
+      } catch (error) {
+        console.error("Access check error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAccess();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#4F46E5" />
+      </View>
+    );
+  }
+
+  // Additional protection - don't render for admins
+  if (userRole === 'admin') {
+    return (
+      <View style={styles.centered}>
+        <Ionicons name="shield-outline" size={64} color="#EF4444" />
+        <Text style={styles.accessDeniedText}>Access Restricted</Text>
+        <Text style={styles.accessDeniedSubtext}>This feature is not available for admin users</Text>
+      </View>
+    );
+  }
+
+  // Get popular categories from configuration
+  const categories = getPopularCategories();
 
   // 3. Navigation helper
   const handleSearch = () => {
@@ -20,7 +72,7 @@ export default function ExploreScreen() {
   const handleCategoryPress = (category: string) => {
     router.push({
       pathname: '/(customer)/browse-vendors',
-      params: { category: category } // Passes the category to filter the list
+      params: { category: category } // Passes the category value to filter the list
     });
   };
 
@@ -40,22 +92,22 @@ export default function ExploreScreen() {
       </View>
 
       {/* Categories Section */}
-      <Text style={styles.sectionTitle}>Categories</Text>
+      <Text style={styles.sectionTitle}>Popular Categories</Text>
       <View style={{ maxHeight: 50, marginBottom: 25 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {categories.map(cat => (
             <TouchableOpacity 
-              key={cat} 
+              key={cat.value} 
               style={styles.catChip}
-              onPress={() => handleCategoryPress(cat)} // 4. Add Navigation
+              onPress={() => handleCategoryPress(cat.value)}
             >
-              <Text style={styles.catText}>{cat}</Text>
+              <Text style={styles.catText}>{cat.label}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      {/* Popular Vendors Placeholder */}
+      {/* Browse All Section */}
       <Text style={styles.sectionTitle}>Start Browsing</Text>
       <TouchableOpacity 
         style={styles.browseAllCard}
@@ -73,6 +125,9 @@ export default function ExploreScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 20 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  accessDeniedText: { fontSize: 18, fontWeight: 'bold', color: '#EF4444', marginTop: 16, textAlign: 'center' },
+  accessDeniedSubtext: { fontSize: 14, color: '#64748B', marginTop: 8, textAlign: 'center' },
   searchSection: { 
     flexDirection: 'row', 
     backgroundColor: '#f3f4f6', 

@@ -4,6 +4,7 @@ import {
   ScrollView, Alert, ActivityIndicator 
 } from 'react-native';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiCall, API_CONFIG } from '../../config/api';
 
 export default function CreateEvent() {
@@ -11,16 +12,15 @@ export default function CreateEvent() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    date: new Date().toISOString().split('T')[0],
     location: '',
     budget: '',
-    eventType: 'Wedding', // Default matching your enum
+    eventType: 'Wedding',
   });
 
   const eventTypes = ['Wedding', 'Birthday', 'Corporate', 'Conference', 'Party', 'Other'];
 
   const handleCreate = async () => {
-    // Basic Validation
     if (!formData.title || !formData.budget || !formData.location) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
@@ -28,11 +28,11 @@ export default function CreateEvent() {
 
     setLoading(true);
     try {
-      const response = await apiCall(API_CONFIG.ENDPOINTS.EVENTS.BASE, {
+      await apiCall(API_CONFIG.ENDPOINTS.EVENTS.BASE, {
         method: 'POST',
         body: JSON.stringify({
           ...formData,
-          budget: Number(formData.budget), // Convert string to number for backend
+          budget: Number(formData.budget),
         }),
       });
 
@@ -47,81 +47,83 @@ export default function CreateEvent() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Plan New Event</Text>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={styles.header}>Plan New Event</Text>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Event Title *</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="e.g. Sarah's Wedding" 
-          value={formData.title}
-          onChangeText={(val) => setFormData({...formData, title: val})}
-        />
+        <View style={styles.form}>
+          <Text style={styles.label}>Event Title *</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="e.g. Sarah's Wedding" 
+            value={formData.title}
+            onChangeText={(val) => setFormData({...formData, title: val})}
+          />
 
-        <Text style={styles.label}>Event Type</Text>
-        <View style={styles.typeContainer}>
-          {eventTypes.map((type) => (
-            <TouchableOpacity 
-              key={type}
-              style={[styles.typeChip, formData.eventType === type && styles.activeChip]}
-              onPress={() => setFormData({...formData, eventType: type})}
-            >
-              <Text style={[styles.typeText, formData.eventType === type && styles.activeTypeText]}>
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          <Text style={styles.label}>Event Type</Text>
+          <View style={styles.typeContainer}>
+            {eventTypes.map((type) => (
+              <TouchableOpacity 
+                key={type}
+                style={[styles.typeChip, formData.eventType === type && styles.activeChip]}
+                onPress={() => setFormData({...formData, eventType: type})}
+              >
+                <Text style={[styles.typeText, formData.eventType === type && styles.activeTypeText]}>
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.label}>Date (YYYY-MM-DD) *</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="2024-12-25" 
+            value={formData.date}
+            onChangeText={(val) => setFormData({...formData, date: val})}
+          />
+
+          <Text style={styles.label}>Location *</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Venue name or address" 
+            value={formData.location}
+            onChangeText={(val) => setFormData({...formData, location: val})}
+          />
+
+          <Text style={styles.label}>Budget ($) *</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="5000" 
+            keyboardType="numeric"
+            value={formData.budget}
+            onChangeText={(val) => setFormData({...formData, budget: val})}
+          />
+
+          <Text style={styles.label}>Description</Text>
+          <TextInput 
+            style={[styles.input, { height: 100 }]} 
+            placeholder="Tell us more about the event..." 
+            multiline
+            value={formData.description}
+            onChangeText={(val) => setFormData({...formData, description: val})}
+          />
+
+          <TouchableOpacity 
+            style={styles.submitBtn} 
+            onPress={handleCreate}
+            disabled={loading}
+          >
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Create Event</Text>}
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.label}>Date (YYYY-MM-DD) *</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="2024-12-25" 
-          value={formData.date}
-          onChangeText={(val) => setFormData({...formData, date: val})}
-        />
-
-        <Text style={styles.label}>Location *</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="Venue name or address" 
-          value={formData.location}
-          onChangeText={(val) => setFormData({...formData, location: val})}
-        />
-
-        <Text style={styles.label}>Budget ($) *</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="5000" 
-          keyboardType="numeric"
-          value={formData.budget}
-          onChangeText={(val) => setFormData({...formData, budget: val})}
-        />
-
-        <Text style={styles.label}>Description</Text>
-        <TextInput 
-          style={[styles.input, { height: 100 }]} 
-          placeholder="Tell us more about the event..." 
-          multiline
-          value={formData.description}
-          onChangeText={(val) => setFormData({...formData, description: val})}
-        />
-
-        <TouchableOpacity 
-          style={styles.submitBtn} 
-          onPress={handleCreate}
-          disabled={loading}
-        >
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Create Event</Text>}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
   header: { fontSize: 24, fontWeight: '800', marginBottom: 20, marginTop: 10 },
   form: { gap: 15 },
   label: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: -10 },

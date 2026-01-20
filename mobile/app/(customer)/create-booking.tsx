@@ -4,6 +4,7 @@ import {
   ScrollView, ActivityIndicator, Alert, TextInput 
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiCall, API_CONFIG } from '../../config/api';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,7 +24,6 @@ export default function CreateBookingScreen() {
 
   const fetchMyEvents = async () => {
     try {
-      // Using your config for my-events
       const data = await apiCall(API_CONFIG.ENDPOINTS.EVENTS.MY_EVENTS);
       setEvents(data);
     } catch (error) {
@@ -34,7 +34,7 @@ export default function CreateBookingScreen() {
     }
   };
 
-const handleBooking = async () => {
+  const handleBooking = async () => {
     if (!selectedEvent) {
       Alert.alert("Selection Required", "Please select one of your events.");
       return;
@@ -42,17 +42,12 @@ const handleBooking = async () => {
 
     try {
       setSubmitting(true);
-      
-      // Ensure the keys here match exactly what your Backend Booking Schema expects
       const bookingData = {
         vendorId: vendorId,
         eventId: selectedEvent,
         message: message || "New booking request",
       };
 
-      console.log("DEBUG: Sending Booking Data:", bookingData);
-
-      // IMPORTANT: We use JSON.stringify because apiCall needs a string for the body
       await apiCall(API_CONFIG.ENDPOINTS.BOOKINGS.BASE, {
         method: 'POST',
         body: JSON.stringify(bookingData),
@@ -65,9 +60,7 @@ const handleBooking = async () => {
         }
       ]);
     } catch (error: any) {
-      // If the backend sends an error message, this will show it
       Alert.alert("Booking Failed", error.message || "Something went wrong");
-      console.error("Booking Submit Error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -76,69 +69,71 @@ const handleBooking = async () => {
   if (loading) return <ActivityIndicator size="large" style={{flex: 1}} color="#4F46E5" />;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color="#1E293B" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Book {businessName}</Text>
-        <View style={{width: 28}} /> 
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.label}>Select Your Event</Text>
-        {events.length === 0 ? (
-          <TouchableOpacity 
-            style={styles.noEventCard}
-            onPress={() => router.push("/create-event")}
-          >
-            <Ionicons name="add-circle-outline" size={30} color="#64748B" />
-            <Text style={styles.noEventText}>You have no active events. Click to create one.</Text>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <ScrollView>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="close" size={28} color="#1E293B" />
           </TouchableOpacity>
-        ) : (
-          events.map((event: any) => (
+          <Text style={styles.headerTitle}>Book {businessName}</Text>
+          <View style={{width: 28}} /> 
+        </View>
+
+        <View style={styles.content}>
+          <Text style={styles.label}>Select Your Event</Text>
+          {events.length === 0 ? (
             <TouchableOpacity 
-              key={event._id}
-              style={[
-                styles.eventCard, 
-                selectedEvent === event._id && styles.selectedCard
-              ]}
-              onPress={() => setSelectedEvent(event._id)}
+              style={styles.noEventCard}
+              onPress={() => router.push("/create-event")}
             >
-              <View>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventDate}>{new Date(event.date).toLocaleDateString()}</Text>
-              </View>
-              {selectedEvent === event._id && (
-                <Ionicons name="checkmark-circle" size={24} color="#4F46E5" />
-              )}
+              <Ionicons name="add-circle-outline" size={30} color="#64748B" />
+              <Text style={styles.noEventText}>You have no active events. Click to create one.</Text>
             </TouchableOpacity>
-          ))
-        )}
-
-        <Text style={[styles.label, { marginTop: 20 }]}>Message to Vendor (Optional)</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="Describe your requirements..."
-          multiline
-          numberOfLines={4}
-          value={message}
-          onChangeText={setMessage}
-        />
-
-        <TouchableOpacity 
-          style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
-          onPress={handleBooking}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitBtnText}>Send Booking Request</Text>
+            events.map((event: any) => (
+              <TouchableOpacity 
+                key={event._id}
+                style={[
+                  styles.eventCard, 
+                  selectedEvent === event._id && styles.selectedCard
+                ]}
+                onPress={() => setSelectedEvent(event._id)}
+              >
+                <View>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <Text style={styles.eventDate}>{new Date(event.date).toLocaleDateString()}</Text>
+                </View>
+                {selectedEvent === event._id && (
+                  <Ionicons name="checkmark-circle" size={24} color="#4F46E5" />
+                )}
+              </TouchableOpacity>
+            ))
           )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+
+          <Text style={[styles.label, { marginTop: 20 }]}>Message to Vendor (Optional)</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Describe your requirements..."
+            multiline
+            numberOfLines={4}
+            value={message}
+            onChangeText={setMessage}
+          />
+
+          <TouchableOpacity 
+            style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
+            onPress={handleBooking}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitBtnText}>Send Booking Request</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -148,7 +143,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    paddingTop: 60, 
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,

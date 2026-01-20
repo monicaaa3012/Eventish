@@ -2,7 +2,7 @@ import { AuthUtils } from '../utils/auth';
 
 // 1. Separate the Server Root from the API Root
 // Using local IP for mobile device connectivity
-const SERVER_URL = 'http://192.168.101.10:5000';
+const SERVER_URL = 'http://192.168.101.3:5000';
 const BASE_URL = `${SERVER_URL}/api`;
 
 export const API_CONFIG = {
@@ -38,11 +38,17 @@ export const API_CONFIG = {
 
 /**
  * Helper to get full image URL
- * Handles Windows backslashes and missing images
+ * Handles both local server images and external URLs (like Unsplash)
  */
 export const getImageUrl = (imagePath: string | undefined) => {
   if (!imagePath) return 'https://via.placeholder.com/150';
   
+  // If it's already a full URL (starts with http/https), return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // For local server images:
   // 1. Convert Windows backslashes (\) to standard forward slashes (/)
   let cleanPath = imagePath.replace(/\\/g, '/');
   

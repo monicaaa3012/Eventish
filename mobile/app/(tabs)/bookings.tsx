@@ -42,6 +42,13 @@ const BookingScreen = () => {
       try {
         const role = await AsyncStorage.getItem('role');
         setUserRole(role);
+        
+        // Redirect admins away from bookings screen
+        if (role?.toLowerCase() === 'admin') {
+          router.replace('/(tabs)');
+          return;
+        }
+        
         setIsReady(true);
       } catch (error) {
         console.error("Initialization error:", error);
@@ -225,22 +232,31 @@ const BookingScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          {userRole === 'vendor' ? 'Received Bookings' : 'My Bookings'}
-        </Text>
-        <TouchableOpacity onPress={fetchBookings} style={styles.refreshBtn}>
-          <Ionicons name="refresh" size={20} color="#4F46E5" />
-        </TouchableOpacity>
-      </View>
-
-      {!isReady || loading ? (
-        <ActivityIndicator size="large" color="#4F46E5" style={{marginTop: 50}} />
+      {/* Admin Access Protection */}
+      {userRole?.toLowerCase() === 'admin' ? (
+        <View style={styles.accessDenied}>
+          <Ionicons name="shield-outline" size={64} color="#EF4444" />
+          <Text style={styles.accessDeniedText}>Access Restricted</Text>
+          <Text style={styles.accessDeniedSubtext}>Bookings are not available for admin users</Text>
+        </View>
       ) : (
-        <FlatList
-          data={bookings}
-          keyExtractor={(item) => item._id}
-          renderItem={renderBookingItem}
+        <>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {userRole === 'vendor' ? 'Received Bookings' : 'My Bookings'}
+            </Text>
+            <TouchableOpacity onPress={fetchBookings} style={styles.refreshBtn}>
+              <Ionicons name="refresh" size={20} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
+
+          {!isReady || loading ? (
+            <ActivityIndicator size="large" color="#4F46E5" style={{marginTop: 50}} />
+          ) : (
+            <FlatList
+              data={bookings}
+              keyExtractor={(item) => item._id}
+              renderItem={renderBookingItem}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -271,6 +287,8 @@ const BookingScreen = () => {
           </View>
         </View>
       </Modal>
+        </>
+      )}
     </View>
   );
 };
@@ -290,6 +308,9 @@ const getStatusColor = (status: string) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  accessDenied: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  accessDeniedText: { fontSize: 18, fontWeight: 'bold', color: '#EF4444', marginTop: 16, textAlign: 'center' },
+  accessDeniedSubtext: { fontSize: 14, color: '#64748B', marginTop: 8, textAlign: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1E293B' },
   refreshBtn: { padding: 8, backgroundColor: '#EEF2FF', borderRadius: 8 },

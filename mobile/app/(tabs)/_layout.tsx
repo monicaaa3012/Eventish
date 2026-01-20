@@ -12,11 +12,7 @@ export default function TabLayout() {
     const fetchRole = async () => {
       try {
         const userRole = await AuthUtils.getRole();
-        
-        // DEBUG LOG: Look at your VS Code Terminal / Metro Terminal for this!
-        console.log("DEBUG: The role fetched from storage is:", userRole);
-        
-        // We normalize it to lowercase and remove any hidden spaces
+        // Normalize role to lowercase to prevent "User" vs "user" bugs
         const normalizedRole = userRole ? userRole.toLowerCase().trim() : null;
         setRole(normalizedRole);
       } catch (error) {
@@ -30,9 +26,9 @@ export default function TabLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
         <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={{ marginTop: 10 }}>Checking permissions...</Text>
+        <Text style={{ marginTop: 10, color: '#64748B' }}>Checking permissions...</Text>
       </View>
     );
   }
@@ -42,7 +38,10 @@ export default function TabLayout() {
       key={role} 
       screenOptions={{
         tabBarActiveTintColor: '#4F46E5',
-        headerTitleStyle: { fontWeight: '800' },
+        tabBarInactiveTintColor: '#94A3B8',
+        tabBarStyle: { height: 60, paddingBottom: 8 },
+        headerTitleStyle: { fontWeight: '800', fontSize: 20 },
+        headerShadowVisible: false,
       }}>
       
       <Tabs.Screen
@@ -53,20 +52,22 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Explore Tab */}
-     <Tabs.Screen
-  name="explore"
-  options={{
-    title: 'Find Vendors',
-    // Change this check to match your backend "user" role
-    href: role === 'user' ? '/explore' : null, 
-    tabBarIcon: ({ color }) => <Ionicons name="search" size={24} color={color} />,
-  }}
-/>
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          // Show explore tab only for customers (role 'user' or 'customer')
+          href: (role === 'user' || role === 'customer') ? '/explore' : null,
+          tabBarIcon: ({ color }) => <Ionicons name="search" size={24} color={color} />,
+        }}
+      />
+
       <Tabs.Screen
         name="bookings"
         options={{
           title: 'Bookings',
+          // Show bookings tab for customers and vendors, but not admins
+          href: (role === 'user' || role === 'customer' || role === 'vendor') ? '/bookings' : null,
           tabBarIcon: ({ color }) => <Ionicons name="calendar" size={24} color={color} />,
         }}
       />

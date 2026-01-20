@@ -5,15 +5,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiCall, API_CONFIG, getImageUrl } from '../../config/api';
-
-const SERVICE_CATEGORIES = [
-  { value: "Photography", label: "Photography", icon: "camera" },
-  { value: "Catering", label: "Catering", icon: "restaurant" },
-  { value: "Music", label: "Music", icon: "musical-notes" },
-  { value: "Venues", label: "Venues", icon: "business" },
-  { value: "Decor", label: "Decor", icon: "flower" }
-];
+import { SERVICE_CATEGORIES } from '../../config/serviceCategories';
 
 export default function VendorBrowse() {
   const router = useRouter();
@@ -21,17 +15,12 @@ export default function VendorBrowse() {
   
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Initialize filters with params coming from ExploreScreen
   const [filters, setFilters] = useState({
     service: (params.category as string) || "",
     search: (params.q as string) || "",
   });
-
-  // Keep the internal search text local for the input field
   const [searchInput, setSearchInput] = useState((params.q as string) || "");
 
-  // Update filters if the user navigates here again with different params
   useEffect(() => {
     setFilters({
       service: (params.category as string) || "",
@@ -48,8 +37,12 @@ export default function VendorBrowse() {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
-      if (filters.service) queryParams.append('category', filters.service);
+      if (filters.service) queryParams.append('service', filters.service); // Changed from 'category' to 'service'
       if (filters.search) queryParams.append('search', filters.search);
+      
+      // DEVELOPMENT: Include unverified vendors for testing
+      // TODO: Remove this in production or restrict to admin users
+      queryParams.append('includeUnverified', 'true');
 
       const vendorData = await apiCall(`${API_CONFIG.ENDPOINTS.VENDORS.BROWSE}?${queryParams.toString()}`);
       const vendorList = Array.isArray(vendorData) ? vendorData : vendorData.vendors || [];
@@ -63,7 +56,10 @@ export default function VendorBrowse() {
         );
 
         let displayImage = null;
-        if (vendor.portfolio && vendor.portfolio.length > 0) {
+        // Priority: profileImage > portfolio > service images
+        if (vendor.profileImage) {
+          displayImage = vendor.profileImage;
+        } else if (vendor.portfolio && vendor.portfolio.length > 0) {
           displayImage = vendor.portfolio[0];
         } else if (vendorServices.length > 0 && vendorServices[0].images?.length > 0) {
           displayImage = vendorServices[0].images[0];
@@ -121,8 +117,7 @@ export default function VendorBrowse() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Search Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -147,7 +142,6 @@ export default function VendorBrowse() {
         </View>
       </View>
 
-      {/* Category Filter Bar */}
       <View style={styles.filterBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
           <TouchableOpacity 
@@ -185,13 +179,13 @@ export default function VendorBrowse() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 15, backgroundColor: '#fff' },
+  header: { paddingHorizontal: 20, paddingBottom: 15, backgroundColor: '#fff' },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   searchBarContainer: { 
     flex: 1, 

@@ -89,8 +89,11 @@ export const getAllVendors = async (req, res) => {
       filter.rating = { $gte: Number.parseFloat(rating) }
     }
 
-    // IMPORTANT: Ensure public browsing only sees verified vendors
-    filter.verified = true
+    // Verification filtering - can be overridden with includeUnverified=true
+    const includeUnverified = req.query.includeUnverified === 'true'
+    if (!includeUnverified) {
+      filter.verified = true
+    }
 
     const sort = {}
     sort[sortBy] = sortOrder === "desc" ? -1 : 1
@@ -181,16 +184,22 @@ export const updateVendorProfile = async (req, res) => {
 
       console.log("Creating new vendor profile...")
       
+      // Auto-verify if profile has essential information
+      const isComplete = businessName && businessName !== "My Business" && 
+                        location && location !== "Not specified" && 
+                        priceRange && priceRange.min >= 0 && priceRange.max > priceRange.min
+      
       vendor = new Vendor({
         userId: req.user.id,
         businessName,
         location,
         priceRange,
+        verified: isComplete, // Auto-verify complete profiles
         ...req.body,
       })
 
       const savedVendor = await vendor.save()
-      console.log("Vendor created successfully:", savedVendor._id)
+      console.log("Vendor created successfully:", savedVendor._id, "Verified:", isComplete)
       
       const populatedVendor = await Vendor.findById(savedVendor._id).populate("userId", "name email")
 
@@ -200,7 +209,22 @@ export const updateVendorProfile = async (req, res) => {
     // Update existing vendor profile
     console.log("Updating existing vendor profile:", vendor._id)
     
-    const updatedVendor = await Vendor.findByIdAndUpdate(vendor._id, req.body, { new: true, runValidators: true }).populate(
+    // Auto-verify if profile becomes complete
+    const updatedData = { ...req.body }
+    const businessName = updatedData.businessName || vendor.businessName
+    const location = updatedData.location || vendor.location
+    const priceRange = updatedData.priceRange || vendor.priceRange
+    
+    const isComplete = businessName && businessName !== "My Business" && 
+                      location && location !== "Not specified" && 
+                      priceRange && priceRange.min >= 0 && priceRange.max > priceRange.min
+    
+    if (isComplete && !vendor.verified) {
+      updatedData.verified = true
+      console.log("Auto-verifying vendor due to complete profile")
+    }
+    
+    const updatedVendor = await Vendor.findByIdAndUpdate(vendor._id, updatedData, { new: true, runValidators: true }).populate(
       "userId",
       "name email",
     )

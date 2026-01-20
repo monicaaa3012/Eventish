@@ -29,6 +29,13 @@ export default function CustomerLayout() {
           headerTitle: "Event Details" 
         }} 
       />
+      <Stack.Screen 
+  name="recommendations" 
+  options={{ 
+    headerTitle: "AI Recommendations",
+    headerShown: false // We use a custom header in the file
+  }} 
+/>
     </Stack>
   );
 }

@@ -22,6 +22,7 @@
     "mongoose": "^8.15.1",
     "multer": "^2.0.1",
     "neppayments": "^2.0.6",
+    "node-fetch": "^3.3.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

@@ -8,8 +8,9 @@ import {
   RefreshControl,
   TouchableOpacity 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, router, Stack } from 'expo-router'; // Add Stack here
 import { apiCall } from '../../config/api';
 
 interface Review {
@@ -21,7 +22,6 @@ interface Review {
 }
 
 export default function MyReviewsScreen() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState({
@@ -34,7 +34,12 @@ export default function MyReviewsScreen() {
   const fetchReviews = async () => {
     try {
       const response = await apiCall('/vendors/my-reviews');
-      setData(response);
+      setData({
+        reviews: response.reviews || [],
+        rating: response.averageRating || response.rating || 0,
+        reviewCount: response.totalReviews || response.reviewCount || 0,
+        businessName: response.businessName || ''
+      });
     } catch (error) {
       console.error("Error fetching reviews:", error);
     } finally {
@@ -63,7 +68,8 @@ export default function MyReviewsScreen() {
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.user?.name || 'Anonymous'}</Text>
           <Text style={styles.reviewDate}>
-            {new Date(item.createdAt).toLocaleDateString()}
+            {/* Fix for "Invalid Date" */}
+            {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
           </Text>
         </View>
         <View style={styles.ratingBadge}>
@@ -84,8 +90,11 @@ export default function MyReviewsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* THIS HIDDEN COMPONENT REMOVES THE TOP-MOST HEADER */}
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Your Custom Styled Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
@@ -112,7 +121,7 @@ export default function MyReviewsScreen() {
                   key={s} 
                   name={s <= Math.round(data.rating) ? "star" : "star-outline"} 
                   size={24} 
-                  color="#F59E0B" 
+                  color="#FCD34D" 
                 />
               ))}
             </View>
@@ -126,25 +135,26 @@ export default function MyReviewsScreen() {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between', 
-    paddingTop: 60, 
-    paddingBottom: 20, 
-    paddingHorizontal: 20, 
-    backgroundColor: '#fff' 
+    paddingVertical: 15,
+    paddingHorizontal: 15, 
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9'
   },
   backBtn: { padding: 8 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
-  listContent: { padding: 20, paddingBottom: 100 },
+  listContent: { padding: 20, paddingBottom: 50 },
   statsCard: { 
     backgroundColor: '#4F46E5', 
     borderRadius: 24, 
@@ -158,10 +168,10 @@ const styles = StyleSheet.create({
   },
   statsLabel: { color: '#E0E7FF', fontSize: 14, fontWeight: '600', marginBottom: 5 },
   statsNum: { color: '#fff', fontSize: 48, fontWeight: 'bold' },
-  starRow: { flexDirection: 'row', gap: 4, marginVertical: 10 },
+  starRow: { flexDirection: 'row', gap: 6, marginVertical: 10 },
   countText: { color: '#E0E7FF', fontSize: 13 },
   reviewCard: { 
-    backgroundColor: '#fff', 
+    backgroundColor: '#F8FAFC', 
     borderRadius: 16, 
     padding: 16, 
     marginBottom: 12,

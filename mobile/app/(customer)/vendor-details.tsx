@@ -7,7 +7,6 @@ import {
   ScrollView, 
   ActivityIndicator, 
   TouchableOpacity, 
-  Dimensions,
   Alert,
   StatusBar
 } from 'react-native';
@@ -24,6 +23,7 @@ export default function VendorDetailsScreen() {
   const [vendorServices, setVendorServices] = useState<any[]>([]);
   const [reviewsData, setReviewsData] = useState<any>({ reviews: [], rating: 0, reviewCount: 0 });
   const [loading, setLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false); // Wishlist state
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,19 +36,25 @@ export default function VendorDetailsScreen() {
       const role = await AsyncStorage.getItem('role');
       setCurrentUserRole(role);
 
+      // 1. Fetch Vendor Profile
       const vendorData = await apiCall(`${API_CONFIG.ENDPOINTS.VENDORS.BROWSE}/${id}`);
       setVendor(vendorData);
 
+      // 2. Fetch Reviews
       try {
         const reviews = await apiCall(`/vendors/${id}/reviews`);
         setReviewsData(reviews);
       } catch (e) { console.log("Reviews fail", e); }
 
+      // 3. Fetch specific services for this vendor
       const allServices = await apiCall(API_CONFIG.ENDPOINTS.SERVICES.BASE);
       const specificServices = allServices.filter(
         (s: any) => s.createdBy?._id === vendorData.userId?._id || s.createdBy === vendorData.userId?._id
       );
       setVendorServices(specificServices);
+
+      // 4. Check Wishlist Status (Optional: API could return this, or we fetch user profile)
+      // For this implementation, we assume the API handles the toggle
     } catch (error) {
       console.error(error);
     } finally {
@@ -56,9 +62,29 @@ export default function VendorDetailsScreen() {
     }
   };
 
+  const handleToggleSave = async () => {
+    try {
+      // Calls the wishlist endpoint we set up earlier
+      const res = await apiCall(`/recommendations/wishlist/${id}`, { method: 'POST' });
+      if (res.success) {
+        setIsSaved(res.isSaved);
+        Alert.alert(
+          res.isSaved ? "Saved to Wishlist" : "Removed", 
+          res.isSaved ? "You can find this vendor in your saved list." : "Vendor removed from favorites."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Error", "Could not update wishlist. Please try again.");
+    }
+  };
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#4F46E5" /></View>;
 
-  const coverImage = vendorServices.length > 0 && vendorServices[0].images?.length > 0
+  const coverImage = vendor?.profileImage 
+    ? getImageUrl(vendor.profileImage)
+    : vendor?.portfolio && vendor.portfolio.length > 0
+    ? getImageUrl(vendor.portfolio[0])
+    : vendorServices.length > 0 && vendorServices[0].images?.length > 0
     ? getImageUrl(vendorServices[0].images[0])
     : 'https://via.placeholder.com/800x600?text=No+Image';
 
@@ -66,10 +92,22 @@ export default function VendorDetailsScreen() {
     <View style={styles.mainContainer}>
       <StatusBar barStyle="light-content" />
       
-      {/* Fixed Back Button for better UX */}
-      <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color="#fff" />
-      </TouchableOpacity>
+      {/* HEADER BUTTONS */}
+      <View style={styles.headerButtons}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {currentUserRole !== 'vendor' && (
+          <TouchableOpacity style={styles.iconBtn} onPress={handleToggleSave}>
+            <Ionicons 
+              name={isSaved ? "heart" : "heart-outline"} 
+              size={24} 
+              color={isSaved ? "#EF4444" : "#fff"} 
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <ScrollView 
         style={styles.container} 
@@ -102,17 +140,21 @@ export default function VendorDetailsScreen() {
           <Text style={styles.description}>{vendor.description || "No description provided."}</Text>
 
           <Text style={styles.sectionTitle}>Services Offered</Text>
-          {vendorServices.map((service) => (
-            <View key={service._id} style={styles.serviceItem}>
-              {service.images?.length > 0 && (
-                <Image source={{ uri: getImageUrl(service.images[0]) }} style={styles.serviceImage} />
-              )}
-              <View style={styles.serviceInfoCol}>
-                <Text style={styles.serviceType}>{service.serviceType}</Text>
-                <Text style={styles.servicePrice}>NPR {service.price}</Text>
+          {vendorServices.length > 0 ? (
+            vendorServices.map((service) => (
+              <View key={service._id} style={styles.serviceItem}>
+                {service.images?.length > 0 && (
+                  <Image source={{ uri: getImageUrl(service.images[0]) }} style={styles.serviceImage} />
+                )}
+                <View style={styles.serviceInfoCol}>
+                  <Text style={styles.serviceType}>{service.serviceType}</Text>
+                  <Text style={styles.servicePrice}>NPR {service.price}</Text>
+                </View>
               </View>
-            </View>
-          ))}
+            ))
+          ) : (
+             <Text style={styles.emptyText}>No service details available.</Text>
+          )}
 
           {/* REVIEWS SECTION */}
           <View style={styles.reviewSectionHeader}>
@@ -157,7 +199,13 @@ export default function VendorDetailsScreen() {
             <Text style={styles.priceLabel}>Starting from</Text>
             <Text style={styles.priceValue}>NPR {vendor.priceRange?.min || '0'}</Text>
           </View>
-          <TouchableOpacity style={styles.bookBtn} onPress={() => router.push({ pathname: "/create-booking", params: { vendorId: vendor._id, businessName: vendor.businessName } })}>
+          <TouchableOpacity 
+            style={styles.bookBtn} 
+            onPress={() => router.push({ 
+                pathname: "/create-booking", 
+                params: { vendorId: vendor._id, businessName: vendor.businessName } 
+            })}
+          >
             <Text style={styles.bookBtnText}>Book Now</Text>
           </TouchableOpacity>
         </View>
@@ -171,7 +219,27 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerImage: { width: '100%', height: 350 },
-  backArrow: { position: 'absolute', top: 50, left: 20, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.3)', padding: 10, borderRadius: 25 },
+  
+  // Updated Header Buttons Style
+  headerButtons: { 
+    position: 'absolute', 
+    top: 50, 
+    left: 20, 
+    right: 20, 
+    zIndex: 10, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between' 
+  },
+  iconBtn: { 
+    backgroundColor: 'rgba(0,0,0,0.3)', 
+    padding: 10, 
+    borderRadius: 25,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
   card: { marginTop: -40, backgroundColor: '#fff', borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingHorizontal: 25, paddingTop: 15 },
   indicator: { width: 40, height: 5, backgroundColor: '#E2E8F0', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
   businessName: { fontSize: 26, fontWeight: 'bold', color: '#1E293B' },
@@ -189,8 +257,8 @@ const styles = StyleSheet.create({
   serviceInfoCol: { flex: 1, marginLeft: 15, justifyContent: 'center' },
   serviceType: { fontSize: 12, color: '#4F46E5', fontWeight: 'bold', textTransform: 'uppercase' },
   servicePrice: { fontSize: 18, fontWeight: 'bold', color: '#1E293B', marginTop: 2 },
+  emptyText: { color: '#94A3B8', fontSize: 14, fontStyle: 'italic', marginBottom: 20 },
   
-  // REVIEW STYLES
   reviewSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 },
   seeAllReviews: { color: '#64748B', fontSize: 12 },
   reviewCard: { backgroundColor: '#fff', padding: 15, borderRadius: 15, marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
