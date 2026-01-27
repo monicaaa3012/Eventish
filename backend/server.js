@@ -12,6 +12,7 @@ import vendorRoutes from "./routes/vendorRoutes.js"
 import serviceRoutes from "./routes/ServiceRoutes.js"
 import bookingRoutes from "./routes/bookingRoutes.js"
 import recommendationRoutes from "./routes/recommendationRoutes.js"
+import analyticsRoutes from "./routes/analyticsRoutes.js"
 import esewaRoutes from "./routes/esewaRoutes.js"
 // import reviewRoutes from "./routes/reviewRoutes.js" // Removed - reviews now handled in vendor and booking routes
 // ES Module equivalent of __dirname
@@ -44,6 +45,7 @@ app.use("/api/vendors", vendorRoutes)
 app.use("/api/services", serviceRoutes)
 app.use("/api/bookings", bookingRoutes)
 app.use("/api/recommendations", recommendationRoutes)
+app.use("/api/analytics", analyticsRoutes)
 app.use("/api/esewa", esewaRoutes)
 // app.use("/api/reviews", reviewRoutes) // Removed - reviews now handled in vendor and booking routes
 

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import uploadarea from "../../../assets/upload.png"
 import { useNavigate } from "react-router-dom"
+import { SERVICE_CATEGORIES, SERVICE_GROUPS } from "../../../utils/serviceCategories"
 
 const AddService = () => {
   const navigate = useNavigate()
@@ -10,7 +11,8 @@ const AddService = () => {
   const [imagePreviews, setImagePreviews] = useState([])
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState("")
-   const [serviceType, setServiceType] = useState("") 
+  const [serviceType, setServiceType] = useState("")
+  const [title, setTitle] = useState("") // Add title field 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -114,7 +116,7 @@ const AddService = () => {
 
     console.log("Submitting with images:", images.length) // Debug log
 
-    if (images.length === 0 || !description || !price) {
+    if (images.length === 0 || !description || !price || !serviceType || !title) {
       setError("Please fill out all fields and upload at least one image.")
       setLoading(false)
       return
@@ -128,6 +130,7 @@ const AddService = () => {
       formData.append("images", image)
     })
 
+    formData.append("title", title)
     formData.append("description", description)
     formData.append("price", price)
      formData.append("serviceType", serviceType)
@@ -161,6 +164,7 @@ const AddService = () => {
 
       setImages([])
       setImagePreviews([])
+      setTitle("")
       setDescription("")
       setPrice("")
       setServiceType("")
@@ -312,9 +316,26 @@ const AddService = () => {
                 </div>
               )}
             </div>
- <div>
+            {/* Service Title */}
+            <div>
+              <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-3">
+                Service Title
+              </label>
+              <input
+                id="title"
+                type="text"
+                placeholder="e.g., Wedding Photography Package"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white/80"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Service Category */}
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Select Service Category
+                Service Category
               </label>
 
               <select
@@ -325,13 +346,38 @@ const AddService = () => {
                 bg-white/80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
                 transition-all duration-300"
               >
-                <option value="">Choose a service</option>
-                <option value="catering">Catering</option>
-                <option value="decoration">Decoration</option>
-                <option value="photography">Photography</option>
-                <option value="music">Music</option>
-                <option value="makeup">Makeup</option>
+                <option value="">Choose a service category</option>
+                {Object.entries(SERVICE_GROUPS).map(([groupKey, groupLabel]) => (
+                  <optgroup key={groupKey} label={groupLabel}>
+                    {SERVICE_CATEGORIES
+                      .filter(cat => cat.group === groupKey)
+                      .map(category => (
+                        <option key={category.value} value={category.value}>
+                          {category.icon} {category.label}
+                        </option>
+                      ))
+                    }
+                  </optgroup>
+                ))}
               </select>
+              
+              {serviceType && (
+                <div className="mt-2 p-3 bg-indigo-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">
+                      {SERVICE_CATEGORIES.find(cat => cat.value === serviceType)?.icon}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-indigo-800">
+                        {SERVICE_CATEGORIES.find(cat => cat.value === serviceType)?.label}
+                      </p>
+                      <p className="text-xs text-indigo-600">
+                        {SERVICE_CATEGORIES.find(cat => cat.value === serviceType)?.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Description */}

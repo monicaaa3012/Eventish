@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { SERVICE_CATEGORIES, SERVICE_GROUPS } from "../../utils/serviceCategories"
 
 const VendorBrowse = () => {
   const navigate = useNavigate()
@@ -16,14 +17,8 @@ const VendorBrowse = () => {
     sortBy: "rating",
     sortOrder: "desc",
   })
-  // Define service categories
-  const serviceCategories = [
-    { value: "catering", label: "Catering" },
-    { value: "decoration", label: "Decoration" },
-    { value: "photography", label: "Photography" },
-    { value: "music", label: "Music" },
-    { value: "makeup", label: "Makeup" }
-  ]
+  // Service categories are now imported from utils
+  const [showAllServices, setShowAllServices] = useState(false)
   const [locations, setLocations] = useState([])
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -162,18 +157,46 @@ const VendorBrowse = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Service Category
+                <button
+                  type="button"
+                  onClick={() => setShowAllServices(!showAllServices)}
+                  className="ml-2 text-xs text-purple-600 hover:text-purple-800"
+                >
+                  ({showAllServices ? 'Show Less' : `Show All ${SERVICE_CATEGORIES.length}`})
+                </button>
+              </label>
               <select
                 value={filters.service}
                 onChange={(e) => handleFilterChange("service", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="">All Services</option>
-                {serviceCategories.map((service) => (
-                  <option key={service.value} value={service.value}>
-                    {service.label}
-                  </option>
-                ))}
+                {showAllServices ? (
+                  // Show all services grouped by category
+                  Object.entries(SERVICE_GROUPS).map(([groupKey, groupLabel]) => (
+                    <optgroup key={groupKey} label={groupLabel}>
+                      {SERVICE_CATEGORIES
+                        .filter(cat => cat.group === groupKey)
+                        .map(service => (
+                          <option key={service.value} value={service.value}>
+                            {service.icon} {service.label}
+                          </option>
+                        ))
+                      }
+                    </optgroup>
+                  ))
+                ) : (
+                  // Show popular services only
+                  SERVICE_CATEGORIES
+                    .filter(cat => ['photography', 'catering', 'venue', 'music', 'decoration', 'makeup', 'planning', 'dj'].includes(cat.value))
+                    .map(service => (
+                      <option key={service.value} value={service.value}>
+                        {service.icon} {service.label}
+                      </option>
+                    ))
+                )}
               </select>
             </div>
 
@@ -258,7 +281,7 @@ const VendorBrowse = () => {
                 <p className="text-xs text-purple-600 mt-1">
                   Filters active: {Object.entries(filters).filter(([key, value]) => value).map(([key, value]) => {
                     if (key === 'service') {
-                      const serviceLabel = serviceCategories.find(s => s.value === value)?.label || value
+                      const serviceLabel = SERVICE_CATEGORIES.find(s => s.value === value)?.label || value
                       return `${key}: ${serviceLabel}`
                     }
                     return `${key}: ${value}`

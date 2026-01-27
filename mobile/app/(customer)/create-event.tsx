@@ -6,6 +6,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiCall, API_CONFIG } from '../../config/api';
+import { SERVICE_CATEGORIES, getPopularCategories } from '../../config/serviceCategories';
 
 export default function CreateEvent() {
   const [loading, setLoading] = useState(false);
@@ -16,9 +17,22 @@ export default function CreateEvent() {
     location: '',
     budget: '',
     eventType: 'Wedding',
+    requirements: [] as string[], // Add requirements field
   });
 
-  const eventTypes = ['Wedding', 'Birthday', 'Corporate', 'Conference', 'Party', 'Other'];
+  const eventTypes = ['Wedding', 'Birthday Party', 'Corporate Event', 'Anniversary', 'Baby Shower', 'Graduation', 'Holiday Party', 'Conference', 'Workshop', 'Other'];
+  
+  // Get popular service categories for requirements
+  const popularServices = getPopularCategories();
+  
+  const toggleRequirement = (serviceValue: string) => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: prev.requirements.includes(serviceValue)
+        ? prev.requirements.filter(req => req !== serviceValue)
+        : [...prev.requirements, serviceValue]
+    }));
+  };
 
   const handleCreate = async () => {
     if (!formData.title || !formData.budget || !formData.location) {
@@ -91,14 +105,36 @@ export default function CreateEvent() {
             onChangeText={(val) => setFormData({...formData, location: val})}
           />
 
-          <Text style={styles.label}>Budget ($) *</Text>
+          <Text style={styles.label}>Budget (NPR) *</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="5000" 
+            placeholder="50000" 
             keyboardType="numeric"
             value={formData.budget}
             onChangeText={(val) => setFormData({...formData, budget: val})}
           />
+
+          <Text style={styles.label}>Service Requirements</Text>
+          <Text style={styles.subLabel}>What services do you need for this event?</Text>
+          <View style={styles.requirementsContainer}>
+            {popularServices.map((service) => (
+              <TouchableOpacity 
+                key={service.value}
+                style={[
+                  styles.requirementChip, 
+                  formData.requirements.includes(service.value) && styles.activeRequirementChip
+                ]}
+                onPress={() => toggleRequirement(service.value)}
+              >
+                <Text style={[
+                  styles.requirementText, 
+                  formData.requirements.includes(service.value) && styles.activeRequirementText
+                ]}>
+                  {service.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text style={styles.label}>Description</Text>
           <TextInput 
@@ -127,12 +163,28 @@ const styles = StyleSheet.create({
   header: { fontSize: 24, fontWeight: '800', marginBottom: 20, marginTop: 10 },
   form: { gap: 15 },
   label: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: -10 },
+  subLabel: { fontSize: 12, color: '#6B7280', marginBottom: 10, marginTop: -5 },
   input: { backgroundColor: '#F9FAF7', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 15, fontSize: 16 },
   typeContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   typeChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#F3F4F6' },
   activeChip: { backgroundColor: '#4F46E5' },
   typeText: { color: '#6B7280', fontWeight: '600' },
   activeTypeText: { color: '#fff' },
+  requirementsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  requirementChip: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 8, 
+    borderRadius: 20, 
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  activeRequirementChip: { 
+    backgroundColor: '#10B981', 
+    borderColor: '#10B981' 
+  },
+  requirementText: { color: '#6B7280', fontWeight: '600', fontSize: 13 },
+  activeRequirementText: { color: '#fff' },
   submitBtn: { backgroundColor: '#111827', borderRadius: 12, padding: 18, alignItems: 'center', marginTop: 20, marginBottom: 50 },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' }
 });

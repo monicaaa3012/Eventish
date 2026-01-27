@@ -4,83 +4,92 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
-  StatusBar
+  StatusBar,
+  ScrollView,
+  Dimensions
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logoText}>
-          Eventish<Text style={{ color: '#4F46E5' }}>.</Text>
-        </Text>
-        <Text style={styles.tagline}>
-          Your complete event management platform
-        </Text>
-      </View>
-
-      {/* Hero Section */}
-      <View style={styles.heroSection}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="calendar" size={80} color="#4F46E5" />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.logoText}>
+            Eventish<Text style={{ color: '#4F46E5' }}>.</Text>
+          </Text>
+          <Text style={styles.tagline}>
+            Your complete event management platform
+          </Text>
         </View>
-        
-        <Text style={styles.heroTitle}>
-          Plan Amazing Events
-        </Text>
-        <Text style={styles.heroSubtitle}>
-          Connect with top vendors, manage bookings, and create unforgettable experiences
-        </Text>
-      </View>
 
-      {/* Features */}
-      <View style={styles.featuresSection}>
-        <View style={styles.feature}>
-          <Ionicons name="search" size={24} color="#10B981" />
-          <Text style={styles.featureText}>Find Perfect Vendors</Text>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="calendar" size={80} color="#4F46E5" />
+          </View>
+          
+          <Text style={styles.heroTitle}>
+            Plan Amazing Events
+          </Text>
+          <Text style={styles.heroSubtitle}>
+            Connect with top vendors, manage bookings, and create unforgettable experiences
+          </Text>
         </View>
-        
-        <View style={styles.feature}>
-          <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
-          <Text style={styles.featureText}>Manage Bookings</Text>
-        </View>
-        
-        <View style={styles.feature}>
-          <Ionicons name="star" size={24} color="#EF4444" />
-          <Text style={styles.featureText}>Read Reviews</Text>
-        </View>
-      </View>
 
-      {/* Action Buttons */}
-      <View style={styles.actionSection}>
-        <TouchableOpacity 
-          style={styles.primaryButton}
-          onPress={() => router.push('/(auth)/register')}
-        >
-          <Text style={styles.primaryButtonText}>Get Started</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.secondaryButton}
-          onPress={() => router.push('/(auth)/login')}
-        >
-          <Text style={styles.secondaryButtonText}>Sign In</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Features */}
+        <View style={styles.featuresSection}>
+          <View style={styles.feature}>
+            <Ionicons name="search" size={24} color="#10B981" />
+            <Text style={styles.featureText}>Find Perfect Vendors</Text>
+          </View>
+          
+          <View style={styles.feature}>
+            <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+            <Text style={styles.featureText}>Manage Bookings</Text>
+          </View>
+          
+          <View style={styles.feature}>
+            <Ionicons name="star" size={24} color="#EF4444" />
+            <Text style={styles.featureText}>Read Reviews</Text>
+          </View>
+        </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Join thousands of event planners and vendors
-        </Text>
-      </View>
+        {/* Action Buttons */}
+        <View style={styles.actionSection}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={() => router.push('/(auth)/register')}
+          >
+            <Text style={styles.primaryButtonText}>Get Started</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.secondaryButton}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.secondaryButtonText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Join thousands of event planners and vendors
+          </Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -88,13 +97,18 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24
+    backgroundColor: '#fff'
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    minHeight: screenHeight * 0.9, // Ensure minimum height
+    justifyContent: 'space-between'
   },
   header: {
     alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 40
+    paddingBottom: 30
   },
   logoText: {
     fontSize: 32,
@@ -110,19 +124,21 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 40
+    paddingVertical: screenHeight < 700 ? 20 : 30, // Less padding on small screens
+    flex: 1,
+    justifyContent: 'center'
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: screenHeight < 700 ? 100 : 120, // Smaller icon on small screens
+    height: screenHeight < 700 ? 100 : 120,
+    borderRadius: screenHeight < 700 ? 50 : 60,
     backgroundColor: '#EEF2FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: screenHeight < 700 ? 24 : 28, // Smaller text on small screens
     fontWeight: 'bold',
     color: '#1E293B',
     textAlign: 'center',
@@ -136,7 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20
   },
   featuresSection: {
-    paddingVertical: 40
+    paddingVertical: screenHeight < 700 ? 20 : 30 // Less padding on small screens
   },
   feature: {
     flexDirection: 'row',
@@ -158,7 +174,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
     borderRadius: 16,
     paddingVertical: 18,
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowColor: '#4F46E5',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8
   },
   primaryButtonText: {
     color: '#fff',
@@ -181,7 +205,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 10
+    paddingBottom: 20
   },
   footerText: {
     fontSize: 14,

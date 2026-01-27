@@ -289,6 +289,108 @@ const sampleVendors = [
         images: ["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop"]
       }
     ]
+  },
+  {
+    businessName: "Grand Ballroom Events",
+    description: "Elegant event venues for weddings, corporate events, and special celebrations. Our spaces feature modern amenities and stunning architecture.",
+    location: "New York",
+    priceRange: { min: 2000, max: 15000 },
+    rating: 4.9,
+    reviewCount: 78,
+    profileImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&h=400&fit=crop",
+    portfolio: [
+      "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=400&h=300&fit=crop"
+    ],
+    contactInfo: {
+      phone: "+1-555-0109",
+      email: "events@grandballroom.com",
+      website: "www.grandballroom.com"
+    },
+    services: [
+      { 
+        serviceType: "venue", 
+        title: "Grand Ballroom Wedding Package",
+        description: "Elegant ballroom venue for weddings up to 300 guests", 
+        price: 8000,
+        images: ["https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop"]
+      },
+      { 
+        serviceType: "venue", 
+        title: "Corporate Event Space",
+        description: "Professional venue for corporate events and conferences", 
+        price: 5000,
+        images: ["https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=400&h=300&fit=crop"]
+      }
+    ]
+  },
+  {
+    businessName: "Riverside Garden Venue",
+    description: "Beautiful outdoor venue with garden settings and riverside views. Perfect for intimate weddings and outdoor celebrations.",
+    location: "Portland",
+    priceRange: { min: 1500, max: 8000 },
+    rating: 4.7,
+    reviewCount: 45,
+    profileImage: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=400&fit=crop",
+    portfolio: [
+      "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop"
+    ],
+    contactInfo: {
+      phone: "+1-555-0110",
+      email: "info@riversidegarden.com",
+      website: "www.riversidegarden.com"
+    },
+    services: [
+      { 
+        serviceType: "venue", 
+        title: "Garden Wedding Venue",
+        description: "Outdoor garden venue with riverside views", 
+        price: 4000,
+        images: ["https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&h=300&fit=crop"]
+      },
+      { 
+        serviceType: "venue", 
+        title: "Intimate Celebration Space",
+        description: "Cozy venue for small gatherings and celebrations", 
+        price: 2500,
+        images: ["https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop"]
+      }
+    ]
+  },
+  {
+    businessName: "Metropolitan Conference Center",
+    description: "Modern conference and event center in the heart of the city. State-of-the-art facilities for corporate events, conferences, and large celebrations.",
+    location: "Chicago",
+    priceRange: { min: 3000, max: 20000 },
+    rating: 4.6,
+    reviewCount: 92,
+    profileImage: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=400&fit=crop",
+    portfolio: [
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&h=300&fit=crop"
+    ],
+    contactInfo: {
+      phone: "+1-555-0111",
+      email: "bookings@metroconference.com",
+      website: "www.metroconference.com"
+    },
+    services: [
+      { 
+        serviceType: "venue", 
+        title: "Main Conference Hall",
+        description: "Large conference hall for corporate events up to 500 people", 
+        price: 12000,
+        images: ["https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=300&fit=crop"]
+      },
+      { 
+        serviceType: "venue", 
+        title: "Executive Meeting Rooms",
+        description: "Professional meeting rooms for smaller corporate gatherings", 
+        price: 3000,
+        images: ["https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&h=300&fit=crop"]
+      }
+    ]
   }
 ]
 

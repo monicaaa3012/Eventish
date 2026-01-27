@@ -102,7 +102,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-12 pt-8 text-center">
-          <p className="text-gray-400">© 2024 Eventish. All rights reserved. Made with ❤️ for amazing events.</p>
+          <p className="text-gray-400">© 2026 Eventish. All rights reserved. Made with ❤️ for amazing events.</p>
         </div>
       </div>
     </footer>

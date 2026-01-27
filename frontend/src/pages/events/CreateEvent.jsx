@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { SERVICE_CATEGORIES, getPopularCategories, EVENT_SERVICE_MAPPING } from "../../utils/serviceCategories"
 
 const CreateEvent = () => {
   const navigate = useNavigate()
@@ -17,14 +18,11 @@ const CreateEvent = () => {
 
   const [loading, setLoading] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [showAllServices, setShowAllServices] = useState(false)
 
-  const requirementOptions = [
-    "Catering",
-    "Decoration",
-    "Photography",
-    "Music",
-    "Makeup",
-  ]
+  // Get popular services for initial display, all services when expanded
+  const popularServices = getPopularCategories()
+  const displayServices = showAllServices ? SERVICE_CATEGORIES : popularServices
 
   const eventTypeOptions = [
     "Wedding",
@@ -39,13 +37,27 @@ const CreateEvent = () => {
     "Other"
   ]
 
-  const toggleRequirement = (req) => {
+  const toggleRequirement = (serviceValue) => {
     setFormData((prev) => ({
       ...prev,
-      requirements: prev.requirements.includes(req)
-        ? prev.requirements.filter((item) => item !== req)
-        : [...prev.requirements, req],
+      requirements: prev.requirements.includes(serviceValue)
+        ? prev.requirements.filter((item) => item !== serviceValue)
+        : [...prev.requirements, serviceValue],
     }))
+  }
+
+  // Auto-suggest services based on event type
+  const handleEventTypeChange = (e) => {
+    const eventType = e.target.value
+    setFormData(prev => ({ ...prev, eventType }))
+    
+    // Auto-suggest relevant services
+    if (EVENT_SERVICE_MAPPING[eventType]) {
+      setFormData(prev => ({
+        ...prev,
+        requirements: EVENT_SERVICE_MAPPING[eventType]
+      }))
+    }
   }
 
   const handleChange = (e) => {
@@ -141,7 +153,7 @@ const CreateEvent = () => {
             <select
               name="eventType"
               value={formData.eventType}
-              onChange={handleChange}
+              onChange={handleEventTypeChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 bg-white/80"
               required
             >
@@ -216,40 +228,94 @@ const CreateEvent = () => {
             />
           </div>
 
-          {/* CUSTOM MULTI-SELECT */}
+          {/* SERVICE REQUIREMENTS */}
           <div className="relative">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Event Requirements
+              Service Requirements
+              <span className="text-xs text-gray-500 ml-2">
+                ({formData.requirements.length} selected)
+              </span>
             </label>
 
             <div
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white/80 cursor-pointer flex items-center justify-between"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white/80 cursor-pointer flex items-center justify-between min-h-[48px]"
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
-              <span className="text-gray-600">
-                {formData.requirements.length > 0
-                  ? formData.requirements.join(", ")
-                  : "Select requirements"}
-              </span>
-              <span>▼</span>
+              <div className="flex-1">
+                {formData.requirements.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {formData.requirements.slice(0, 3).map((req) => {
+                      const category = SERVICE_CATEGORIES.find(cat => cat.value === req)
+                      return (
+                        <span key={req} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
+                          {category?.icon} {category?.label || req}
+                        </span>
+                      )
+                    })}
+                    {formData.requirements.length > 3 && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                        +{formData.requirements.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-500">Select services you need</span>
+                )}
+              </div>
+              <span className={`transform transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>▼</span>
             </div>
 
             {dropdownOpen && (
-              <div className="absolute mt-2 w-full bg-white shadow-lg rounded-xl border p-3 z-20">
-                {requirementOptions.map((opt) => (
-                  <label
-                    key={opt}
-                    className="flex items-center gap-3 px-2 py-2 hover:bg-purple-50 rounded-lg cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.requirements.includes(opt)}
-                      onChange={() => toggleRequirement(opt)}
-                      className="w-4 h-4 text-purple-600"
-                    />
-                    <span className="text-gray-700">{opt}</span>
-                  </label>
-                ))}
+              <div className="absolute mt-2 w-full bg-white shadow-xl rounded-xl border border-gray-200 z-20 max-h-80 overflow-y-auto">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-gray-700">
+                      {showAllServices ? 'All Services' : 'Popular Services'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAllServices(!showAllServices)}
+                      className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                    >
+                      {showAllServices ? 'Show Less' : `Show All (${SERVICE_CATEGORIES.length})`}
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-1">
+                    {displayServices.map((service) => (
+                      <label
+                        key={service.value}
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-purple-50 rounded-lg cursor-pointer group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.requirements.includes(service.value)}
+                          onChange={() => toggleRequirement(service.value)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-lg">{service.icon}</span>
+                        <div className="flex-1">
+                          <span className="text-gray-700 font-medium">{service.label}</span>
+                          <p className="text-xs text-gray-500 group-hover:text-gray-600">
+                            {service.description}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  {formData.requirements.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, requirements: [] }))}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                      >
+                        Clear All Selections
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
