@@ -196,6 +196,29 @@ const UserDashboard = () => {
           </div>
         </div>
 
+        {/* Additional Quick Actions Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-2xl p-6 border border-white/20 transition-all duration-500 transform hover:-translate-y-3">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-red-600 transition-colors duration-300">
+                My Wishlist
+              </h3>
+              <p className="text-gray-600 mb-4">Saved favorite vendors</p>
+              <button
+                onClick={() => navigate("/user/wishlist")}
+                className="bg-primary-gradient text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
+                View Wishlist
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Events List */}
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20">
           <div className="px-8 py-6 border-b border-gray-200">

@@ -8,6 +8,7 @@ const VendorBrowse = () => {
   const navigate = useNavigate()
   const [vendors, setVendors] = useState([])
   const [loading, setLoading] = useState(true)
+  const [wishlist, setWishlist] = useState([])
   const [filters, setFilters] = useState({
     service: "",
     location: "",
@@ -30,6 +31,7 @@ const VendorBrowse = () => {
   useEffect(() => {
     fetchVendors()
     fetchLocations()
+    fetchWishlist()
   }, [filters])
 
   // Initial load effect
@@ -84,6 +86,68 @@ const VendorBrowse = () => {
       }
     } catch (error) {
       console.error("Error fetching locations:", error)
+    }
+  }
+
+  const fetchWishlist = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const response = await fetch("http://localhost:5000/api/auth/wishlist", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setWishlist(data.wishlist.map(v => v._id))
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error)
+    }
+  }
+
+  const toggleWishlist = async (vendorId, e) => {
+    e.stopPropagation()
+    
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        navigate("/login")
+        return
+      }
+
+      const isInWishlist = wishlist.includes(vendorId)
+
+      if (isInWishlist) {
+        const response = await fetch(`http://localhost:5000/api/auth/wishlist/${vendorId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          setWishlist(wishlist.filter(id => id !== vendorId))
+        }
+      } else {
+        const response = await fetch("http://localhost:5000/api/auth/wishlist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ vendorId }),
+        })
+
+        if (response.ok) {
+          setWishlist([...wishlist, vendorId])
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error)
     }
   }
 
@@ -438,6 +502,28 @@ const VendorBrowse = () => {
                         className="flex-1 bg-primary-gradient text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
                       >
                         View Details
+                      </button>
+                      <button
+                        onClick={(e) => toggleWishlist(vendor._id, e)}
+                        className={`px-3 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center ${
+                          wishlist.includes(vendor._id)
+                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            : 'bg-white hover:bg-gray-50 text-red-500 border-2 border-red-200'
+                        }`}
+                        title={wishlist.includes(vendor._id) ? "Remove from wishlist" : "Add to wishlist"}
+                      >
+                        <svg
+                          className={`w-5 h-5 ${wishlist.includes(vendor._id) ? 'fill-white' : 'fill-none'}`}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
                       </button>
                       {vendor.reviewCount > 0 && (
                         <button

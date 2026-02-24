@@ -21,6 +21,7 @@ import VendorProfile from "./pages/Vendor/VendorProfile"
 import VendorAnalytics from "./pages/Vendor/VendorAnalytics"
 import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
 import UserDetails from "./pages/customer/UserDetails"
+import Wishlist from "./pages/customer/Wishlist"
 import EditService from "./pages/Vendor/AddService/EditService" // Add this import
 import LeaveReview from "./pages/LeaveReview"
 import VendorMyReviews from "./pages/Vendor/VendorMyReviews"
@@ -70,6 +71,14 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user"]}>
                 <UserDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/wishlist"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <Wishlist />
               </ProtectedRoute>
             }
           />

@@ -14,6 +14,7 @@ const VendorDetails = () => {
   const [loading, setLoading] = useState(true)
   const [servicesLoading, setServicesLoading] = useState(true)
   const [showBookingModal, setShowBookingModal] = useState(false)
+  const [isInWishlist, setIsInWishlist] = useState(false)
   const [bookingData, setBookingData] = useState({
     eventId: "",
     message: "",
@@ -23,6 +24,7 @@ const VendorDetails = () => {
     fetchVendorDetails()
     fetchVendorServices()
     fetchUserEvents()
+    checkWishlistStatus()
   }, [id])
 
   const fetchVendorDetails = async () => {
@@ -140,6 +142,64 @@ const VendorDetails = () => {
     }
     setShowBookingModal(true)
   };
+
+  const checkWishlistStatus = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const response = await fetch("http://localhost:5000/api/auth/wishlist", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsInWishlist(data.wishlist.some(vendor => vendor._id === id))
+      }
+    } catch (error) {
+      console.error("Error checking wishlist status:", error)
+    }
+  }
+
+  const toggleWishlist = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        navigate("/login")
+        return
+      }
+
+      if (isInWishlist) {
+        const response = await fetch(`http://localhost:5000/api/auth/wishlist/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          setIsInWishlist(false)
+        }
+      } else {
+        const response = await fetch("http://localhost:5000/api/auth/wishlist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ vendorId: id }),
+        })
+
+        if (response.ok) {
+          setIsInWishlist(true)
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error)
+    }
+  }
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -502,13 +562,35 @@ const VendorDetails = () => {
               </p>
               <button
                   onClick={handleBookingRequest}
-    className={`w-full text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+    className={`w-full text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 mb-3 ${
       isRequestSent 
         ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700' 
         : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
     }`}
   >
     {isRequestSent ? 'View My Bookings' : 'Send Booking Request'}
+              </button>
+              <button
+                onClick={toggleWishlist}
+                className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+                  isInWishlist
+                    ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
+                    : 'bg-white text-purple-600 border-2 border-purple-200 hover:bg-purple-50'
+                }`}
+              >
+                <svg
+                  className={`w-5 h-5 ${isInWishlist ? 'fill-red-600' : 'fill-none'}`}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+                {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
               </button>
             </div>
           </div>
