@@ -158,30 +158,44 @@ export default function ChatScreen() {
           contentContainerStyle={{ paddingVertical: 10 }}
           renderItem={({ item }) => {
             let isMe = false;
+            let senderName = "Unknown";
             
-            if (item.sender) {
-              if (typeof item.sender === 'string') {
-                isMe = item.sender === myId;
-              } else if (item.sender._id) {
-                if (item.senderModel === 'Vendor') {
-                  const senderUserId = typeof item.sender.userId === 'string' 
-                    ? item.sender.userId 
-                    : item.sender.userId?._id;
-                  isMe = senderUserId === myId;
-                } else {
-                  isMe = item.sender._id === myId;
-                }
+            if (!item.sender) {
+              senderName = "Unknown";
+            } else if (typeof item.sender === 'string') {
+              isMe = item.sender === myId;
+              senderName = isMe ? "You" : "Unknown User";
+            } else {
+              // Sender is populated object
+              if (item.senderModel === 'Vendor') {
+                // For vendor messages
+                const vendorUserId = item.sender.userId?._id || item.sender.userId;
+                isMe = vendorUserId === myId;
+                senderName = isMe ? "You" : (item.sender.businessName || "Vendor");
+              } else {
+                // For user messages
+                const userSenderId = item.sender._id || item.sender.id;
+                isMe = userSenderId === myId;
+                senderName = isMe ? "You" : (item.sender.name || item.sender.email || "User");
               }
             }
 
             return (
-              <View style={[styles.bubble, isMe ? styles.myBubble : styles.theirBubble]}>
-                <Text style={[styles.messageText, isMe ? styles.myText : styles.theirText]}>
-                  {item.content}
+              <View style={{ marginVertical: 4, marginHorizontal: 15 }}>
+                <Text style={[
+                  styles.senderLabel, 
+                  isMe ? styles.mySenderLabel : styles.theirSenderLabel
+                ]}>
+                  {senderName}
                 </Text>
-                <Text style={[styles.time, isMe ? styles.myTime : styles.theirTime]}>
-                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                <View style={[styles.bubble, isMe ? styles.myBubble : styles.theirBubble]}>
+                  <Text style={[styles.messageText, isMe ? styles.myText : styles.theirText]}>
+                    {item.content}
+                  </Text>
+                  <Text style={[styles.time, isMe ? styles.myTime : styles.theirTime]}>
+                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </View>
               </View>
             );
           }}
@@ -235,11 +249,23 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 5 },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  senderLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+    marginHorizontal: 4,
+  },
+  mySenderLabel: {
+    color: '#4F46E5',
+    textAlign: 'right',
+  },
+  theirSenderLabel: {
+    color: '#6B7280',
+    textAlign: 'left',
+  },
   bubble: { 
     padding: 12, 
     borderRadius: 20, 
-    marginVertical: 4, 
-    marginHorizontal: 15, 
     maxWidth: '80%',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -248,7 +274,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   myBubble: { alignSelf: 'flex-end', backgroundColor: '#4F46E5', borderBottomRightRadius: 4 },
-  theirBubble: { alignSelf: 'flex-start', backgroundColor: '#fff', borderBottomLeftRadius: 4 },
+  theirBubble: { alignSelf: 'flex-start', backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#E5E7EB' },
   messageText: { fontSize: 16, lineHeight: 22 },
   myText: { color: '#fff' },
   theirText: { color: '#1F2937' },
