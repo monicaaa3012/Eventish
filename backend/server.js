@@ -1,11 +1,17 @@
-import express from "express"
 import dotenv from "dotenv"
+
+// Load environment variables FIRST before any other imports
+dotenv.config()
+
+import express from "express"
+import { createServer } from "http"
 import cors from "cors"
 import path from "path"
 import fs from "fs"
 import { fileURLToPath } from "url"
 import multer from "multer"
 import connectDB from "./config/db.js"
+import { initializeSocket } from "./utils/socket.js"
 import authRoutes from "./routes/authRoutes.js"
 import eventRoutes from "./routes/eventRoutes.js"
 import vendorRoutes from "./routes/vendorRoutes.js"
@@ -14,15 +20,19 @@ import bookingRoutes from "./routes/bookingRoutes.js"
 import recommendationRoutes from "./routes/recommendationRoutes.js"
 import analyticsRoutes from "./routes/analyticsRoutes.js"
 import esewaRoutes from "./routes/esewaRoutes.js"
+import chatRoutes from "./routes/chatRoutes.js"
 // import reviewRoutes from "./routes/reviewRoutes.js" // Removed - reviews now handled in vendor and booking routes
 // ES Module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-dotenv.config()
 connectDB()
 
 const app = express()
+const server = createServer(app)
+
+// Initialize Socket.IO
+initializeSocket(server)
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, "uploads")
@@ -47,6 +57,7 @@ app.use("/api/bookings", bookingRoutes)
 app.use("/api/recommendations", recommendationRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/esewa", esewaRoutes)
+app.use("/api/chat", chatRoutes)
 // app.use("/api/reviews", reviewRoutes) // Removed - reviews now handled in vendor and booking routes
 
 // Error handling middleware
@@ -67,4 +78,4 @@ app.use((req, res) => {
 })
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`))

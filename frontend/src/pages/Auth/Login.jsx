@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
+import { initializeSocket } from "../../utils/socket"
 import logo from "../../assets/logo.png"
 
 const Login = () => {
@@ -62,6 +63,19 @@ const Login = () => {
       if (data.userId) {
         localStorage.setItem("userId", data.userId)
       }
+
+      // Store user object
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: data.userId,
+          role: normalizedRole,
+          email: formData.email,
+        }),
+      )
+
+      // Initialize socket connection
+      initializeSocket(data.token)
 
       // Debug logging
       console.log("Login successful:", { token: data.token, role: normalizedRole, userId: data.userId })

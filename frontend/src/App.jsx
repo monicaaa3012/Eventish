@@ -22,7 +22,7 @@ import VendorAnalytics from "./pages/Vendor/VendorAnalytics"
 import ServiceDetails from "./pages/Vendor/AddService/ServiceDetails"
 import UserDetails from "./pages/customer/UserDetails"
 import Wishlist from "./pages/customer/Wishlist"
-import EditService from "./pages/Vendor/AddService/EditService" // Add this import
+import EditService from "./pages/Vendor/AddService/EditService"
 import LeaveReview from "./pages/LeaveReview"
 import VendorMyReviews from "./pages/Vendor/VendorMyReviews"
 import VendorRecommendation from "./pages/VendorRecommendation"
@@ -31,6 +31,8 @@ import PaymentSuccess from "./pages/PaymentSuccess"
 import PaymentFailure from "./pages/PaymentFailure"
 import EsewaSuccess from "./pages/payment/EsewaSuccess"
 import EsewaFailure from "./pages/payment/EsewaFailure"
+import ChatPage from "./pages/ChatPage"
+import ConversationsList from "./pages/ConversationsList"
 // Public pages
 import Venues from "./pages/public/Venues"
 import Services from "./pages/public/Services"
@@ -222,8 +224,24 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-        
-          
+
+          {/* Chat Routes */}
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor"]}>
+                <ConversationsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/:vendorId"
+            element={
+              <ProtectedRoute allowedRoles={["user", "vendor"]}>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Payment Routes */}
           <Route path="/payment-success" element={<PaymentSuccess />} />
