@@ -219,10 +219,7 @@ const UserDashboard = () => {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Additional Quick Actions Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg hover:shadow-2xl p-6 border border-white/20 transition-all duration-500 transform hover:-translate-y-3">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
