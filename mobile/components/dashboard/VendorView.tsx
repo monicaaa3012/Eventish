@@ -162,6 +162,14 @@ export default function VendorView() {
       <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Manage Business</Text>
 
       <View style={styles.actionContainer}>
+        <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(vendor)/analytics')}>
+          <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
+            <Ionicons name="stats-chart-outline" size={22} color="#2563EB" />
+          </View>
+          <Text style={styles.actionText}>View Analytics</Text>
+          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(vendor)/my-profile')}>
           <View style={[styles.iconCircle, { backgroundColor: '#FEF3C7' }]}>
             <Ionicons name="person-outline" size={22} color="#D97706" />

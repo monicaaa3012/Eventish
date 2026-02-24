@@ -27,6 +27,12 @@ export default function LeaveReviewScreen() {
       if (data.status !== "Completed") {
         Alert.alert("Denied", "You can only review completed services.");
         router.back();
+        return;
+      }
+      if (data.hasReviewed) {
+        Alert.alert("Already Reviewed", "You have already submitted a review for this booking.");
+        router.back();
+        return;
       }
       setBooking(data);
     } catch (error) {

@@ -297,6 +297,7 @@ export const addBookingReview = async (req, res) => {
       comment: comment.trim(),
       date: new Date()
     }
+    booking.hasReviewed = true
 
     await booking.save()
 

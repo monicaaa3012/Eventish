@@ -17,6 +17,7 @@ interface Booking {
   servicePrice?: number;
   paymentMethod?: string;
   paymentStatus?: string;
+  hasReviewed?: boolean;
   vendorId?: { _id: string; businessName: string };
   customerId?: { _id: string; name: string; email: string };
   eventId: { title: string; date: string; location: string };
@@ -208,7 +209,7 @@ const BookingScreen = () => {
               </TouchableOpacity>
             )}
 
-            {item.status === 'Completed' && (
+            {item.status === 'Completed' && !item.hasReviewed && (
               <TouchableOpacity 
                 style={[styles.btn, { backgroundColor: '#F59E0B' }]} 
                 onPress={() => router.push({
@@ -223,6 +224,13 @@ const BookingScreen = () => {
                 <Ionicons name="star" size={16} color="#fff" />
                 <Text style={[styles.btnTextWhite, {marginLeft: 8}]}>Leave Review</Text>
               </TouchableOpacity>
+            )}
+
+            {item.status === 'Completed' && item.hasReviewed && (
+              <View style={[styles.btn, { backgroundColor: '#10B981', opacity: 0.7 }]}>
+                <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                <Text style={[styles.btnTextWhite, {marginLeft: 8}]}>Review Submitted</Text>
+              </View>
             )}
           </>
         )}
