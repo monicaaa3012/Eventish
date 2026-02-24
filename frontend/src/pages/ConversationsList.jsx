@@ -62,11 +62,29 @@ export default function ConversationsList() {
       : conv.unreadCount?.customer || 0
   }
 
+  const handleBackToDashboard = () => {
+    if (user.role === "admin") {
+      navigate("/admin/dashboard")
+    } else if (user.role === "vendor") {
+      navigate("/vendor/dashboard")
+    } else {
+      navigate("/user/dashboard")
+    }
+  }
+
   if (loading) return <div className="p-8">Loading...</div>
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Messages</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Messages</h1>
+        <button 
+          onClick={handleBackToDashboard}
+          className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
+      </div>
 
       {conversations.length === 0 ? (
         <div className="text-center py-12 text-gray-500">

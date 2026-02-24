@@ -1,15 +1,16 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
     conversationId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
       required: true,
       index: true,
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      refPath: "senderModel", // Dynamic reference
       required: true,
     },
     senderModel: {
@@ -27,10 +28,10 @@ const messageSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true },
-)
+  { timestamps: true }
+);
 
-// Index for efficient queries
-messageSchema.index({ conversationId: 1, createdAt: -1 })
+// Index for performance
+messageSchema.index({ conversationId: 1, createdAt: -1 });
 
-export default mongoose.model("Message", messageSchema)
+export default mongoose.model("Message", messageSchema);

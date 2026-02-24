@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import axios from "axios"
-import { getSocket, connectSocket } from "../utils/socket"
+import { getSocket, connectSocket, initializeSocket } from "../utils/socket"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
@@ -13,12 +13,21 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(true)
   const [typing, setTyping] = useState(false)
-  const [myId, setMyId] = useState(null) // Store the actual ID to compare with
+  const [myUserId, setMyUserId] = useState(null) // Store the user's actual userId for comparison
+  const [myRole, setMyRole] = useState(null)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
 
   const token = localStorage.getItem("token")
   const user = JSON.parse(localStorage.getItem("user") || "{}")
+  
+  // Initialize socket with token
+  useEffect(() => {
+    if (token) {
+      initializeSocket(token)
+    }
+  }, [token])
+
   const socket = getSocket()
 
   // vendorId param is actually the "other party" ID (vendor for customer, customer for vendor)
@@ -29,6 +38,12 @@ export default function ChatPage() {
       navigate("/login")
       return
     }
+
+    // Store user info for message comparison
+    setMyUserId(user.id || user._id)
+    setMyRole(user.role)
+    
+    console.log("🔑 Chat initialized - My userId:", user.id || user._id, "Role:", user.role)
 
     loadConversation()
     connectSocket()
@@ -50,6 +65,11 @@ export default function ChatPage() {
     socket.emit("join_conversation", conversation._id)
 
     socket.on("new_message", (message) => {
+      console.log("📨 New message received:", {
+        sender: message.sender?._id || message.sender,
+        senderModel: message.senderModel,
+        content: message.content
+      })
       setMessages((prev) => [...prev, message])
       scrollToBottom()
     })
@@ -75,8 +95,6 @@ export default function ChatPage() {
 
   const loadConversation = async () => {
     try {
-      // For customers, otherPartyId is vendorId
-      // For vendors, otherPartyId is customerId - we need to find the conversation
       let conv
       if (user.role === "vendor") {
         // Vendor viewing conversation with customer
@@ -92,30 +110,30 @@ export default function ChatPage() {
           navigate("/chat")
           return
         }
-        // Set myId to vendor's _id for message comparison
-        setMyId(conv.vendor._id)
       } else {
-        // Customer viewing conversation with vendor
-        const { data } = await axios.get(
-          `${API_URL}/api/chat/conversations/${otherPartyId}`,
+        // Customer creating/getting conversation with vendor
+        const { data } = await axios.post(
+          `${API_URL}/api/chat/conversation/${otherPartyId}`,
+          {},
           { headers: { Authorization: `Bearer ${token}` } },
         )
         conv = data
-        // Set myId to customer's _id for message comparison
-        setMyId(conv.customer._id)
       }
 
       setConversation(conv)
 
+      // Fetch message history using new endpoint
       const { data: msgs } = await axios.get(
-        `${API_URL}/api/chat/messages/${conv._id}`,
+        `${API_URL}/api/chat/history/${conv._id}`,
         { headers: { Authorization: `Bearer ${token}` } },
       )
-      setMessages(msgs)
+      
+      console.log("📜 Chat history loaded:", msgs?.length || 0, "messages")
+      setMessages(msgs || [])
 
       // Mark as read
-      await axios.put(
-        `${API_URL}/api/chat/messages/${conv._id}/read`,
+      await axios.post(
+        `${API_URL}/api/chat/mark-read/${conv._id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       )
@@ -175,23 +193,64 @@ export default function ChatPage() {
   const otherPartyName = otherParty?.businessName || otherParty?.name || "User"
   const otherPartyEmail = otherParty?.email || ""
 
+  const handleBackToDashboard = () => {
+    if (user.role === "admin") {
+      navigate("/admin/dashboard")
+    } else if (user.role === "vendor") {
+      navigate("/vendor/dashboard")
+    } else {
+      navigate("/user/dashboard")
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-white border-b p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-gray-600">
-          ← Back
-        </button>
-        <div>
-          <h2 className="font-semibold">{otherPartyName}</h2>
-          <p className="text-sm text-gray-500">{otherPartyEmail}</p>
+      <div className="bg-white border-b p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-gray-600 hover:text-gray-800">
+            ← Back
+          </button>
+          <div>
+            <h2 className="font-semibold">{otherPartyName}</h2>
+            <p className="text-sm text-gray-500">{otherPartyEmail}</p>
+          </div>
         </div>
+        <button 
+          onClick={handleBackToDashboard}
+          className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Dashboard
+        </button>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {messages.map((msg) => {
-          const isMe = msg.sender?._id === myId
+          // Determine if this message was sent by me
+          // For customers: sender._id === myUserId (User document)
+          // For vendors: sender.userId === myUserId (Vendor document has userId field)
+          let isMe = false;
+          
+          if (msg.sender) {
+            if (typeof msg.sender === 'string') {
+              // Sender is just an ID string
+              isMe = msg.sender === myUserId;
+            } else if (msg.sender._id) {
+              // Sender is populated object
+              if (msg.senderModel === 'Vendor') {
+                // For vendor messages, compare userId
+                const senderUserId = typeof msg.sender.userId === 'string' 
+                  ? msg.sender.userId 
+                  : msg.sender.userId?._id;
+                isMe = senderUserId === myUserId;
+              } else {
+                // For user messages, compare _id
+                isMe = msg.sender._id === myUserId;
+              }
+            }
+          }
+
           return (
             <div
               key={msg._id}

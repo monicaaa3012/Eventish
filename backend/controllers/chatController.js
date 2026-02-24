@@ -50,7 +50,10 @@ export const getConversations = async (req, res) => {
 
     const conversations = await Conversation.find(query)
       .populate("customer", "name email")
-      .populate("vendor", "businessName email")
+      .populate({
+        path: "vendor",
+        select: "businessName email userId"
+      })
       .sort({ lastMessageAt: -1 })
 
     res.json(conversations)
@@ -80,7 +83,7 @@ export const getMessages = async (req, res) => {
         const msgObj = msg.toObject()
         if (msg.senderModel === "Vendor") {
           const vendor = await Vendor.findById(msg.sender).select(
-            "businessName email",
+            "businessName email userId",
           )
           msgObj.sender = vendor
         } else {

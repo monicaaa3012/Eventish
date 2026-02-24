@@ -51,6 +51,7 @@ const Login = () => {
 
       // Normalize role to lowercase
       const normalizedRole = data.role?.toLowerCase()
+      const userId = data.user?.id || data.userId
 
       // Clear any existing auth data
       localStorage.clear()
@@ -60,17 +61,19 @@ const Login = () => {
       localStorage.setItem("role", normalizedRole)
 
       // Store user ID if available
-      if (data.userId) {
-        localStorage.setItem("userId", data.userId)
+      if (userId) {
+        localStorage.setItem("userId", userId)
       }
 
       // Store user object
       localStorage.setItem(
         "user",
         JSON.stringify({
-          id: data.userId,
+          id: userId,
+          _id: userId,
           role: normalizedRole,
-          email: formData.email,
+          email: data.user?.email || formData.email,
+          name: data.user?.name,
         }),
       )
 
@@ -78,11 +81,12 @@ const Login = () => {
       initializeSocket(data.token)
 
       // Debug logging
-      console.log("Login successful:", { token: data.token, role: normalizedRole, userId: data.userId })
+      console.log("Login successful:", { token: data.token, role: normalizedRole, userId })
       console.log("Stored in localStorage:", {
         token: localStorage.getItem("token"),
         role: localStorage.getItem("role"),
         userId: localStorage.getItem("userId"),
+        user: localStorage.getItem("user"),
       })
 
       // Redirect based on normalized role

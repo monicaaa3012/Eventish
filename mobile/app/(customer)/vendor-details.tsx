@@ -78,6 +78,25 @@ export default function VendorDetailsScreen() {
     }
   };
 
+  const handleMessageVendor = async () => {
+    try {
+      // Create or get existing conversation with this vendor
+      const conversation = await apiCall(`/chat/conversation/${id}`, { method: 'POST' });
+      
+      // Navigate to chat screen with conversation ID
+      router.push({
+        pathname: '/chat/[id]',
+        params: { 
+          id: conversation._id,
+          receiverId: vendor.userId?._id || vendor.userId
+        }
+      });
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      Alert.alert("Error", "Could not start conversation. Please try again.");
+    }
+  };
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#4F46E5" /></View>;
 
   const coverImage = vendor?.profileImage 
@@ -195,19 +214,27 @@ export default function VendorDetailsScreen() {
       {/* Book Now Bar */}
       {currentUserRole !== 'vendor' && (
         <View style={styles.bottomBar}>
-          <View>
+          <View style={styles.priceSection}>
             <Text style={styles.priceLabel}>Starting from</Text>
             <Text style={styles.priceValue}>NPR {vendor.priceRange?.min || '0'}</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.bookBtn} 
-            onPress={() => router.push({ 
-                pathname: "/create-booking", 
-                params: { vendorId: vendor._id, businessName: vendor.businessName } 
-            })}
-          >
-            <Text style={styles.bookBtnText}>Book Now</Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={styles.messageBtn} 
+              onPress={handleMessageVendor}
+            >
+              <Ionicons name="chatbubble-outline" size={20} color="#4F46E5" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.bookBtn} 
+              onPress={() => router.push({ 
+                  pathname: "/create-booking", 
+                  params: { vendorId: vendor._id, businessName: vendor.businessName } 
+              })}
+            >
+              <Text style={styles.bookBtnText}>Book Now</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -274,8 +301,20 @@ const styles = StyleSheet.create({
   emptyReviewText: { color: '#94A3B8', fontSize: 13 },
 
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', flexDirection: 'row', padding: 25, paddingBottom: 40, borderTopWidth: 1, borderTopColor: '#F1F5F9', justifyContent: 'space-between', alignItems: 'center' },
+  priceSection: { flex: 1 },
   priceLabel: { fontSize: 12, color: '#64748B' },
   priceValue: { fontSize: 20, fontWeight: 'bold', color: '#1E293B' },
+  actionButtons: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  messageBtn: { 
+    backgroundColor: '#EEF2FF', 
+    width: 48, 
+    height: 48, 
+    borderRadius: 16, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#C7D2FE'
+  },
   bookBtn: { backgroundColor: '#4F46E5', paddingHorizontal: 35, paddingVertical: 16, borderRadius: 16 },
   bookBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });

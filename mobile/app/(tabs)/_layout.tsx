@@ -73,6 +73,15 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Messages',
+          href: (role === 'user' || role === 'customer' || role === 'vendor') ? '/messages' : null,
+          tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={24} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Account',

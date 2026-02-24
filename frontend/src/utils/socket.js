@@ -4,9 +4,27 @@ let socket = null
 
 export const initializeSocket = (token) => {
   if (!socket) {
-    socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
+    const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:5000"
+    
+    socket = io(serverUrl, {
       auth: { token },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
       autoConnect: false,
+    })
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected")
+    })
+
+    socket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error.message)
+    })
+
+    socket.on("disconnect", (reason) => {
+      console.log("🔌 Socket disconnected:", reason)
     })
   }
   return socket
@@ -21,7 +39,15 @@ export const connectSocket = () => {
 }
 
 export const disconnectSocket = () => {
-  if (socket) {
+  if (socket && socket.connected) {
     socket.disconnect()
+  }
+}
+
+export const cleanupSocket = () => {
+  if (socket) {
+    socket.removeAllListeners()
+    socket.disconnect()
+    socket = null
   }
 }
