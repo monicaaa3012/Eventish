@@ -40,10 +40,9 @@ export default function ChatPage() {
     }
 
     // Store user info for message comparison
-    setMyUserId(user.id || user._id)
+    const userId = user.id || user._id
+    setMyUserId(userId)
     setMyRole(user.role)
-    
-    console.log("🔑 Chat initialized - My userId:", user.id || user._id, "Role:", user.role)
 
     loadConversation()
     connectSocket()
@@ -65,11 +64,6 @@ export default function ChatPage() {
     socket.emit("join_conversation", conversation._id)
 
     socket.on("new_message", (message) => {
-      console.log("📨 New message received:", {
-        sender: message.sender?._id || message.sender,
-        senderModel: message.senderModel,
-        content: message.content
-      })
       setMessages((prev) => [...prev, message])
       scrollToBottom()
     })
@@ -128,7 +122,6 @@ export default function ChatPage() {
         { headers: { Authorization: `Bearer ${token}` } },
       )
       
-      console.log("📜 Chat history loaded:", msgs?.length || 0, "messages")
       setMessages(msgs || [])
 
       // Mark as read
@@ -225,29 +218,35 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((msg) => {
           // Determine if this message was sent by me
-          // For customers: sender._id === myUserId (User document)
-          // For vendors: sender.userId === myUserId (Vendor document has userId field)
           let isMe = false;
+          let senderName = "Unknown";
           
-          if (msg.sender) {
-            if (typeof msg.sender === 'string') {
-              // Sender is just an ID string
-              isMe = msg.sender === myUserId;
-            } else if (msg.sender._id) {
-              // Sender is populated object
-              if (msg.senderModel === 'Vendor') {
-                // For vendor messages, compare userId
-                const senderUserId = typeof msg.sender.userId === 'string' 
-                  ? msg.sender.userId 
-                  : msg.sender.userId?._id;
-                isMe = senderUserId === myUserId;
-              } else {
-                // For user messages, compare _id
-                isMe = msg.sender._id === myUserId;
-              }
+          if (!msg.sender) {
+            // No sender data at all
+            senderName = "Unknown";
+          } else if (typeof msg.sender === 'string') {
+            // Sender is just an ID string (shouldn't happen with proper population)
+            isMe = msg.sender === myUserId;
+            senderName = isMe ? "You" : "Unknown User";
+          } else {
+            // Sender is populated object - use the data from backend
+            if (msg.senderModel === 'Vendor') {
+              // For vendor messages, the sender is the Vendor document
+              // We need to compare the vendor's userId with myUserId
+              const vendorUserId = msg.sender.userId?._id || msg.sender.userId;
+              isMe = vendorUserId === myUserId;
+              // Use businessName from the populated vendor object
+              senderName = isMe ? "You" : (msg.sender.businessName || "Vendor");
+            } else {
+              // For user messages, the sender is the User document
+              // Compare the user's _id with myUserId
+              const userSenderId = msg.sender._id || msg.sender.id;
+              isMe = userSenderId === myUserId;
+              // Use name from the populated user object - NO FALLBACK to otherPartyName
+              senderName = isMe ? "You" : (msg.sender.name || msg.sender.email || "User");
             }
           }
 
@@ -256,23 +255,41 @@ export default function ChatPage() {
               key={msg._id}
               className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
-              <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
-                  isMe ? "bg-blue-500 text-white" : "bg-white text-gray-800"
-                }`}
-              >
-                <p>{msg.content}</p>
-                <p className="text-xs mt-1 opacity-70">
-                  {new Date(msg.createdAt).toLocaleTimeString()}
-                </p>
+              <div className={`max-w-xs ${isMe ? "items-end" : "items-start"} flex flex-col`}>
+                <span className={`text-xs font-medium mb-1 px-1 ${
+                  isMe ? "text-blue-700" : "text-gray-600"
+                }`}>
+                  {senderName}
+                </span>
+                <div
+                  className={`px-4 py-3 rounded-2xl shadow-sm ${
+                    isMe 
+                      ? "bg-blue-600 text-white rounded-br-sm" 
+                      : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
+                  }`}
+                >
+                  <p className="break-words">{msg.content}</p>
+                  <p className={`text-xs mt-1 ${
+                    isMe ? "text-blue-100" : "text-gray-500"
+                  }`}>
+                    {new Date(msg.createdAt).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
           )
         })}
         {typing && (
           <div className="flex justify-start">
-            <div className="bg-white px-4 py-2 rounded-lg text-gray-500 text-sm">
-              Typing...
+            <div className="bg-white px-4 py-3 rounded-2xl text-gray-500 text-sm border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>●</span>
+              </div>
             </div>
           </div>
         )}
@@ -280,7 +297,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <form onSubmit={sendMessage} className="bg-white border-t p-4 flex gap-2">
+      <form onSubmit={sendMessage} className="bg-white border-t p-4 flex gap-3 shadow-lg">
         <input
           type="text"
           value={newMessage}
@@ -289,12 +306,12 @@ export default function ChatPage() {
             handleTyping()
           }}
           placeholder="Type your message..."
-          className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <button
           type="submit"
           disabled={!newMessage.trim()}
-          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+          className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-md hover:shadow-lg"
         >
           Send
         </button>

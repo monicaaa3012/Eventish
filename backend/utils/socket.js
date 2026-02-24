@@ -36,12 +36,6 @@ export const initializeSocket = (server) => {
       try {
         const { conversationId, content, receiverId } = data;
 
-        console.log("📤 Sending message:", {
-          userId: socket.userId,
-          userRole: socket.userRole,
-          content: content.substring(0, 30)
-        });
-
         // 1. Resolve actual Sender ID (User ID or Vendor Object ID)
         let senderId = socket.userId;
         let senderModel = "User";
@@ -51,11 +45,7 @@ export const initializeSocket = (server) => {
           if (vendor) {
             senderId = vendor._id;
             senderModel = "Vendor";
-            console.log("  → Vendor found:", vendor._id);
           }
-        } else {
-          senderModel = "User";
-          console.log("  → User message, senderId:", senderId);
         }
 
         // 2. Create Message in DB
@@ -66,18 +56,27 @@ export const initializeSocket = (server) => {
           content,
         });
 
-        console.log("  → Message created:", {
-          messageId: message._id,
-          sender: senderId,
-          senderModel: senderModel
-        });
-
-        // 3. Populate sender info for the UI
-        const populatedMsg = await message.populate(
-          socket.userRole === "vendor" 
-            ? { path: "sender", select: "businessName userId" } 
-            : { path: "sender", select: "name" }
-        );
+        // 3. Populate sender info for the UI - ALWAYS populate with full details
+        let populatedMsg;
+        if (senderModel === "Vendor") {
+          populatedMsg = await Message.findById(message._id)
+            .populate({
+              path: "sender",
+              select: "businessName email userId",
+              model: "Vendor",
+              populate: {
+                path: "userId",
+                select: "_id"
+              }
+            });
+        } else {
+          populatedMsg = await Message.findById(message._id)
+            .populate({
+              path: "sender",
+              select: "name email _id",
+              model: "User"
+            });
+        }
 
         // 4. Update Conversation Metadata
         await Conversation.findByIdAndUpdate(conversationId, {

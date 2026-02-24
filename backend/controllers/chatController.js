@@ -77,18 +77,21 @@ export const getMessages = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
 
-    // Manually populate sender based on senderModel
+    // Manually populate sender based on senderModel with full details
     const populatedMessages = await Promise.all(
       messages.map(async (msg) => {
         const msgObj = msg.toObject()
         if (msg.senderModel === "Vendor") {
-          const vendor = await Vendor.findById(msg.sender).select(
-            "businessName email userId",
-          )
+          const vendor = await Vendor.findById(msg.sender)
+            .select("businessName email userId")
+            .populate("userId", "_id")
+            .lean()
           msgObj.sender = vendor
         } else {
           const User = (await import("../models/User.js")).default
-          const user = await User.findById(msg.sender).select("name email")
+          const user = await User.findById(msg.sender)
+            .select("name email _id")
+            .lean()
           msgObj.sender = user
         }
         return msgObj
@@ -97,6 +100,7 @@ export const getMessages = async (req, res) => {
 
     res.json(populatedMessages.reverse())
   } catch (error) {
+    console.error("Error in getMessages:", error)
     res.status(500).json({ error: error.message })
   }
 }
