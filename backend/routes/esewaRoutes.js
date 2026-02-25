@@ -1,8 +1,17 @@
 import express from "express"
 import protect from "../middleware/authMiddleware.js"
+import { initiateEsewaPayment, handleEsewaSuccess, handleEsewaFailure } from "../controllers/esewaController.js"
 
 const router = express.Router()
 
+// Initiate eSewa payment
+router.post("/initiate", protect, initiateEsewaPayment)
+
+// eSewa callback endpoints
+router.get("/success", handleEsewaSuccess)
+router.get("/failure", handleEsewaFailure)
+
+// Legacy routes (keeping for backward compatibility)
 // Esewa payment success callback
 router.get("/:bookingId/payment/esewa/success", async (req, res) => {
   try {

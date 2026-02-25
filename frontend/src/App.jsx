@@ -27,8 +27,6 @@ import LeaveReview from "./pages/LeaveReview"
 import VendorMyReviews from "./pages/Vendor/VendorMyReviews"
 import VendorRecommendation from "./pages/VendorRecommendation"
 import TestRecommendation from "./pages/TestRecommendation"
-import PaymentSuccess from "./pages/PaymentSuccess"
-import PaymentFailure from "./pages/PaymentFailure"
 import EsewaSuccess from "./pages/payment/EsewaSuccess"
 import EsewaFailure from "./pages/payment/EsewaFailure"
 import ChatPage from "./pages/ChatPage"
@@ -244,10 +242,10 @@ const App = () => {
           />
 
           {/* Payment Routes */}
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-failure" element={<PaymentFailure />} />
-          <Route path="/payment/esewa/success" element={<PaymentSuccess />} />
-          <Route path="/payment/esewa/failure" element={<PaymentFailure />} />
+          <Route path="/payment-success" element={<EsewaSuccess />} />
+          <Route path="/payment-failure" element={<EsewaFailure />} />
+          <Route path="/payment/esewa/success" element={<EsewaSuccess />} />
+          <Route path="/payment/esewa/failure" element={<EsewaFailure />} />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />

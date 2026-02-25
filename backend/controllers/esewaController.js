@@ -224,7 +224,8 @@ export const handleEsewaSuccess = async (req, res) => {
   try {
     const { oid, amt, refId } = req.query
     
-    console.log("eSewa success callback received:", { oid, amt, refId })
+    console.log("=== eSewa SUCCESS CALLBACK ===")
+    console.log("Query params:", { oid, amt, refId })
     
     // Find booking by transaction UUID
     const booking = await Booking.findOne({ esewaTransactionUuid: oid })
@@ -234,9 +235,12 @@ export const handleEsewaSuccess = async (req, res) => {
       .populate("eventId", "title date location")
 
     if (!booking) {
-      console.log("Booking not found for transaction UUID:", oid)
+      console.log("❌ Booking not found for transaction UUID:", oid)
       return res.redirect(`${process.env.FRONTEND_URL}/payment/esewa/failure?error=booking_not_found`)
     }
+
+    console.log("✅ Booking found:", booking._id)
+    console.log("Current payment status:", booking.paymentStatus)
 
     // Update booking with successful payment
     booking.paymentStatus = "completed"
@@ -251,11 +255,14 @@ export const handleEsewaSuccess = async (req, res) => {
     })
 
     await booking.save()
+    
+    console.log("✅ Booking updated - new payment status:", booking.paymentStatus)
+    console.log("=== END eSewa SUCCESS CALLBACK ===")
 
     // Redirect to frontend success page
     res.redirect(`${process.env.FRONTEND_URL}/payment/esewa/success?oid=${oid}&amt=${amt}&refId=${refId}`)
   } catch (error) {
-    console.error("Error handling eSewa success:", error)
+    console.error("❌ Error handling eSewa success:", error)
     res.redirect(`${process.env.FRONTEND_URL}/payment/esewa/failure?error=processing_failed`)
   }
 }

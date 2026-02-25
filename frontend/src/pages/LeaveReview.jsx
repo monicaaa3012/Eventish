@@ -75,10 +75,8 @@ const LeaveReview = () => {
 
       if (response.ok) {
         alert("Review submitted successfully!")
-        // Trigger events to notify other components to refresh
-        window.dispatchEvent(new Event('reviewAdded'))
-        window.dispatchEvent(new Event('bookingUpdated'))
-        navigate(-1)
+        // Navigate to bookings page with refresh flag
+        navigate("/bookings", { state: { refresh: true } })
       } else {
         const errorData = await response.json()
         setError(errorData.message || "Failed to submit review")

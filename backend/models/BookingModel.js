@@ -96,6 +96,22 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    review: {
+      rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+        required: false,
+      },
+      comment: {
+        type: String,
+        required: false,
+      },
+      date: {
+        type: Date,
+        required: false,
+      },
+    },
   },
   { timestamps: true },
 )

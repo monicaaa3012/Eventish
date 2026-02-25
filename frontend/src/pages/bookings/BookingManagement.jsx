@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 const BookingManagement = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("customer") // customer or vendor
@@ -16,6 +17,16 @@ const BookingManagement = () => {
   useEffect(() => {
     fetchBookings()
   }, [activeTab])
+
+  // Check if we need to refresh after returning from review page
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log("Refresh flag detected, reloading bookings...")
+      fetchBookings()
+      // Clear the state to prevent refresh on subsequent renders
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type })

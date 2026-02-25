@@ -64,6 +64,22 @@ const EsewaSuccess = () => {
     navigate("/bookings")
   }
 
+  const handleGoToHome = () => {
+    // Get user role from localStorage
+    const userRole = localStorage.getItem("role")
+    
+    // Navigate to appropriate dashboard based on role
+    if (userRole === "admin") {
+      navigate("/admin/dashboard")
+    } else if (userRole === "vendor") {
+      navigate("/vendor/dashboard")
+    } else if (userRole === "user") {
+      navigate("/user/dashboard")
+    } else {
+      navigate("/")
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -110,7 +126,7 @@ const EsewaSuccess = () => {
             </button>
             
             <button
-              onClick={() => navigate("/")}
+              onClick={handleGoToHome}
               className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-2xl font-medium transition-all duration-300"
             >
               Go to Home
