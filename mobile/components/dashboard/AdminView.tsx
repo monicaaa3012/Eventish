@@ -17,13 +17,38 @@ import { apiCall, API_CONFIG } from '../../config/api';
 export default function AdminView() {
   const [pendingVendors, setPendingVendors] = useState([]);
   const [verifiedVendors, setVerifiedVendors] = useState([]);
+  const [platformStats, setPlatformStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'verified'>('pending');
+  const [activeTab, setActiveTab] = useState<'overview' | 'pending' | 'verified'>('overview');
 
   useEffect(() => {
-    fetchVendors();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchVendors(),
+        fetchPlatformStats()
+      ]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchPlatformStats = async () => {
+    try {
+      const stats = await apiCall('/analytics/platform');
+      setPlatformStats(stats);
+    } catch (error) {
+      console.error("Error fetching platform stats:", error);
+    }
+  };
 
   const fetchVendors = async () => {
     try {
@@ -49,7 +74,7 @@ export default function AdminView() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchVendors();
+    fetchData();
   };
 
   const verifyVendor = async (vendorId: string, businessName: string) => {
@@ -197,6 +222,15 @@ export default function AdminView() {
       {/* Tab Selector */}
       <View style={styles.tabContainer}>
         <TouchableOpacity 
+          style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
+          onPress={() => setActiveTab('overview')}
+        >
+          <Text style={[styles.tabText, activeTab === 'overview' && styles.activeTabText]}>
+            Overview
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
           style={[styles.tab, activeTab === 'pending' && styles.activeTab]}
           onPress={() => setActiveTab('pending')}
         >
@@ -215,9 +249,112 @@ export default function AdminView() {
         </TouchableOpacity>
       </View>
 
-      {/* Vendor List */}
-      <View style={styles.section}>
-        {activeTab === 'pending' ? (
+      {/* Content */}
+      {activeTab === 'overview' ? (
+        <ScrollView 
+          style={styles.section}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />
+          }
+        >
+          {platformStats ? (
+            <>
+              {/* Platform Stats */}
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <Ionicons name="people" size={24} color="#4F46E5" />
+                  <Text style={styles.statNumber}>{platformStats.totalUsers || 0}</Text>
+                  <Text style={styles.statLabel}>Total Users</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Ionicons name="business" size={24} color="#10B981" />
+                  <Text style={styles.statNumber}>{platformStats.totalVendors || 0}</Text>
+                  <Text style={styles.statLabel}>Vendors</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Ionicons name="calendar" size={24} color="#3B82F6" />
+                  <Text style={styles.statNumber}>{platformStats.totalBookings || 0}</Text>
+                  <Text style={styles.statLabel}>Bookings</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Ionicons name="cash" size={24} color="#8B5CF6" />
+                  <Text style={styles.statNumber}>
+                    NPR {(platformStats.totalRevenue || 0).toLocaleString()}
+                  </Text>
+                  <Text style={styles.statLabel}>Revenue</Text>
+                </View>
+              </View>
+
+              {/* Recent Activity */}
+              <View style={styles.activitySection}>
+                <Text style={styles.sectionTitle}>Platform Activity</Text>
+                <View style={styles.activityCard}>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Active Bookings</Text>
+                    <Text style={styles.activityValue}>{platformStats.activeBookings || 0}</Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Completed Bookings</Text>
+                    <Text style={[styles.activityValue, { color: '#10B981' }]}>
+                      {platformStats.completedBookings || 0}
+                    </Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Pending Payments</Text>
+                    <Text style={[styles.activityValue, { color: '#F59E0B' }]}>
+                      {platformStats.pendingPayments || 0}
+                    </Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>This Month Revenue</Text>
+                    <Text style={[styles.activityValue, { color: '#8B5CF6' }]}>
+                      NPR {(platformStats.monthlyRevenue || 0).toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Vendor Stats */}
+              <View style={styles.activitySection}>
+                <Text style={styles.sectionTitle}>Vendor Management</Text>
+                <View style={styles.activityCard}>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Verified Vendors</Text>
+                    <Text style={[styles.activityValue, { color: '#10B981' }]}>
+                      {verifiedVendors.length}
+                    </Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Pending Verification</Text>
+                    <Text style={[styles.activityValue, { color: '#F59E0B' }]}>
+                      {pendingVendors.length}
+                    </Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Featured Vendors</Text>
+                    <Text style={styles.activityValue}>
+                      {platformStats.featuredVendors || 0}
+                    </Text>
+                  </View>
+                  <View style={styles.activityRow}>
+                    <Text style={styles.activityLabel}>Total Services</Text>
+                    <Text style={styles.activityValue}>
+                      {platformStats.totalServices || 0}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <ActivityIndicator size="large" color="#4F46E5" />
+              <Text style={styles.emptyText}>Loading platform statistics...</Text>
+            </View>
+          )}
+        </ScrollView>
+      ) : (
+        <View style={styles.section}>
+          {activeTab === 'pending' ? (
           pendingVendors.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="checkmark-done-circle" size={48} color="#10B981" />
@@ -252,7 +389,8 @@ export default function AdminView() {
             />
           )
         )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -416,5 +554,64 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontSize: 16,
     marginTop: 12
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 20
+  },
+  statCard: {
+    flex: 1,
+    minWidth: '47%',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 8
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 4,
+    textAlign: 'center'
+  },
+  activitySection: {
+    marginBottom: 20
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 12
+  },
+  activityCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  activityRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8
+  },
+  activityLabel: {
+    fontSize: 14,
+    color: '#64748B'
+  },
+  activityValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B'
   }
 });

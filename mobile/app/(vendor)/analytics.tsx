@@ -23,26 +23,52 @@ interface Analytics {
   scheduledBookings: number;
   inProgressBookings: number;
   totalRevenue: number;
+  totalPotentialRevenue: number;
+  pendingRevenue: number;
   monthlyRevenue: number;
+  lastMonthRevenue: number;
+  yearToDateRevenue: number;
+  monthlyRevenueGrowth: number;
   averageEarningPerBooking: number;
+  pendingPaymentsCount: number;
+  totalAdvancePayments: number;
+  advancePaymentsCount: number;
+  averageAdvancePayment: number;
+  completedAdvancePayments: number;
+  pendingAdvancePayments: number;
+  paymentMethods: Array<{
+    method: string;
+    count: number;
+    totalAmount: number;
+    percentage: string;
+  }>;
   averageRating: number;
   totalReviews: number;
   topPerformingService: {
     name: string;
     bookingCount: number;
     revenue: number;
+    potentialRevenue: number;
     completionRate: string;
     performanceScore: number;
+    advancePaymentsReceived: number;
   } | null;
   servicePerformance: Array<{
     serviceName: string;
     bookingCount: number;
     revenue: number;
+    potentialRevenue: number;
     completedBookings: number;
     completionRate: string;
     performanceScore: number;
     rank: number;
     averagePrice: number;
+    advancePaymentsReceived: number;
+  }>;
+  monthlyTrend: Array<{
+    month: string;
+    bookings: number;
+    revenue: number;
   }>;
 }
 
@@ -161,13 +187,52 @@ export default function VendorAnalytics() {
         <Text style={styles.sectionTitle}>Revenue</Text>
         <View style={styles.revenueCard}>
           <View style={styles.revenueItem}>
-            <Text style={styles.revenueLabel}>Total Revenue</Text>
+            <Text style={styles.revenueLabel}>Total Revenue (Received)</Text>
             <Text style={styles.revenueValue}>{formatCurrency(analytics.totalRevenue)}</Text>
           </View>
           <View style={styles.revenueDivider} />
           <View style={styles.revenueItem}>
-            <Text style={styles.revenueLabel}>Monthly Revenue</Text>
+            <Text style={styles.revenueLabel}>Potential Revenue (All Bookings)</Text>
+            <Text style={[styles.revenueValue, { fontSize: 20, color: '#6B7280' }]}>
+              {formatCurrency(analytics.totalPotentialRevenue)}
+            </Text>
+          </View>
+          <View style={styles.revenueDivider} />
+          <View style={styles.revenueItem}>
+            <Text style={styles.revenueLabel}>Pending Payments</Text>
+            <Text style={[styles.revenueValue, { fontSize: 20, color: '#F59E0B' }]}>
+              {formatCurrency(analytics.pendingRevenue)}
+            </Text>
+            <Text style={styles.revenueSubtext}>
+              {analytics.pendingPaymentsCount} booking{analytics.pendingPaymentsCount !== 1 ? 's' : ''}
+            </Text>
+          </View>
+          <View style={styles.revenueDivider} />
+          <View style={styles.revenueItem}>
+            <Text style={styles.revenueLabel}>This Month</Text>
             <Text style={styles.revenueValue}>{formatCurrency(analytics.monthlyRevenue)}</Text>
+            {analytics.monthlyRevenueGrowth !== 0 && (
+              <View style={styles.growthBadge}>
+                <Ionicons
+                  name={analytics.monthlyRevenueGrowth > 0 ? 'trending-up' : 'trending-down'}
+                  size={14}
+                  color={analytics.monthlyRevenueGrowth > 0 ? '#10B981' : '#EF4444'}
+                />
+                <Text
+                  style={[
+                    styles.growthText,
+                    { color: analytics.monthlyRevenueGrowth > 0 ? '#10B981' : '#EF4444' },
+                  ]}
+                >
+                  {Math.abs(analytics.monthlyRevenueGrowth).toFixed(1)}%
+                </Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.revenueDivider} />
+          <View style={styles.revenueItem}>
+            <Text style={styles.revenueLabel}>Year to Date</Text>
+            <Text style={styles.revenueValue}>{formatCurrency(analytics.yearToDateRevenue)}</Text>
           </View>
           <View style={styles.revenueDivider} />
           <View style={styles.revenueItem}>
@@ -178,6 +243,71 @@ export default function VendorAnalytics() {
           </View>
         </View>
       </View>
+
+      {/* Advance Payments */}
+      {analytics.advancePaymentsCount > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>💰 Advance Payments</Text>
+          <View style={styles.advancePaymentCard}>
+            <View style={styles.advancePaymentRow}>
+              <View style={styles.advancePaymentItem}>
+                <Text style={styles.advancePaymentLabel}>Total Received</Text>
+                <Text style={styles.advancePaymentValue}>
+                  {formatCurrency(analytics.completedAdvancePayments)}
+                </Text>
+              </View>
+              <View style={styles.advancePaymentItem}>
+                <Text style={styles.advancePaymentLabel}>Pending</Text>
+                <Text style={[styles.advancePaymentValue, { color: '#F59E0B' }]}>
+                  {formatCurrency(analytics.pendingAdvancePayments)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.advancePaymentDivider} />
+            <View style={styles.advancePaymentRow}>
+              <View style={styles.advancePaymentItem}>
+                <Text style={styles.advancePaymentLabel}>Total Bookings</Text>
+                <Text style={styles.advancePaymentValue}>{analytics.advancePaymentsCount}</Text>
+              </View>
+              <View style={styles.advancePaymentItem}>
+                <Text style={styles.advancePaymentLabel}>Average Amount</Text>
+                <Text style={styles.advancePaymentValue}>
+                  {formatCurrency(analytics.averageAdvancePayment)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Payment Methods */}
+      {analytics.paymentMethods && analytics.paymentMethods.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Payment Methods</Text>
+          {analytics.paymentMethods.map((method, index) => (
+            <View key={index} style={styles.paymentMethodCard}>
+              <View style={styles.paymentMethodHeader}>
+                <View style={styles.paymentMethodIcon}>
+                  <Ionicons
+                    name={method.method === 'esewa' ? 'wallet' : 'cash'}
+                    size={24}
+                    color={method.method === 'esewa' ? '#10B981' : '#3B82F6'}
+                  />
+                </View>
+                <View style={styles.paymentMethodInfo}>
+                  <Text style={styles.paymentMethodName}>
+                    {method.method === 'esewa' ? 'eSewa' : 'Cash'}
+                  </Text>
+                  <Text style={styles.paymentMethodCount}>
+                    {method.count} transaction{method.count !== 1 ? 's' : ''} ({method.percentage}%)
+                  </Text>
+                </View>
+                <Text style={styles.paymentMethodAmount}>{formatCurrency(method.totalAmount)}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Customer Satisfaction */}
       <View style={styles.section}>
@@ -218,6 +348,12 @@ export default function VendorAnalytics() {
                 </Text>
               </View>
               <View style={styles.topServiceStat}>
+                <Text style={styles.topServiceStatLabel}>Potential</Text>
+                <Text style={styles.topServiceStatValue}>
+                  {formatCurrency(analytics.topPerformingService.potentialRevenue)}
+                </Text>
+              </View>
+              <View style={styles.topServiceStat}>
                 <Text style={styles.topServiceStatLabel}>Completion</Text>
                 <Text style={styles.topServiceStatValue}>
                   {analytics.topPerformingService.completionRate}%
@@ -229,6 +365,14 @@ export default function VendorAnalytics() {
                   {analytics.topPerformingService.performanceScore}/100
                 </Text>
               </View>
+              {analytics.topPerformingService.advancePaymentsReceived > 0 && (
+                <View style={styles.topServiceStat}>
+                  <Text style={styles.topServiceStatLabel}>Advance Payments</Text>
+                  <Text style={styles.topServiceStatValue}>
+                    {formatCurrency(analytics.topPerformingService.advancePaymentsReceived)}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -269,8 +413,14 @@ export default function VendorAnalytics() {
               </View>
               <View style={styles.serviceStats}>
                 <View style={styles.serviceStat}>
-                  <Text style={styles.serviceStatLabel}>Revenue</Text>
+                  <Text style={styles.serviceStatLabel}>Revenue (Received)</Text>
                   <Text style={styles.serviceStatValue}>{formatCurrency(service.revenue)}</Text>
+                </View>
+                <View style={styles.serviceStat}>
+                  <Text style={styles.serviceStatLabel}>Potential Revenue</Text>
+                  <Text style={[styles.serviceStatValue, { color: '#6B7280' }]}>
+                    {formatCurrency(service.potentialRevenue)}
+                  </Text>
                 </View>
                 <View style={styles.serviceStat}>
                   <Text style={styles.serviceStatLabel}>Completed</Text>
@@ -284,6 +434,14 @@ export default function VendorAnalytics() {
                   <Text style={styles.serviceStatLabel}>Avg Price</Text>
                   <Text style={styles.serviceStatValue}>{formatCurrency(service.averagePrice)}</Text>
                 </View>
+                {service.advancePaymentsReceived > 0 && (
+                  <View style={styles.serviceStat}>
+                    <Text style={styles.serviceStatLabel}>Advance Payments</Text>
+                    <Text style={[styles.serviceStatValue, { color: '#10B981' }]}>
+                      {formatCurrency(service.advancePaymentsReceived)}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           ))}
@@ -407,9 +565,93 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#8B5CF6',
   },
+  revenueSubtext: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  growthBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 4,
+  },
+  growthText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
   revenueDivider: {
     height: 1,
     backgroundColor: '#E5E7EB',
+  },
+  advancePaymentCard: {
+    backgroundColor: '#FFF7ED',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+  },
+  advancePaymentRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  advancePaymentItem: {
+    flex: 1,
+  },
+  advancePaymentLabel: {
+    fontSize: 12,
+    color: '#92400E',
+    marginBottom: 6,
+  },
+  advancePaymentValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  advancePaymentDivider: {
+    height: 1,
+    backgroundColor: '#FED7AA',
+    marginVertical: 16,
+  },
+  paymentMethodCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  paymentMethodHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentMethodIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  paymentMethodInfo: {
+    flex: 1,
+  },
+  paymentMethodName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    textTransform: 'capitalize',
+  },
+  paymentMethodCount: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  paymentMethodAmount: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#10B981',
   },
   satisfactionRow: {
     flexDirection: 'row',

@@ -2,7 +2,8 @@ import express from "express"
 import protect from "../middleware/authMiddleware.js"
 import {
   getVendorAnalytics,
-  getAnalyticsByDateRange
+  getAnalyticsByDateRange,
+  getPlatformAnalytics
 } from "../controllers/analyticsController.js"
 
 const router = express.Router()
@@ -17,5 +18,8 @@ router.get("/vendor", protect, getVendorAnalytics)
 
 // Get analytics by date range
 router.get("/vendor/date-range", protect, getAnalyticsByDateRange)
+
+// Get platform-wide analytics (Admin only)
+router.get("/platform", protect, getPlatformAnalytics)
 
 export default router
