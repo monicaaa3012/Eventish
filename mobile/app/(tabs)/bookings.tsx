@@ -98,13 +98,13 @@ const BookingScreen = () => {
     }
   };
 
-  const handlePayment = (id: string) => {
+  const handlePayment = (booking: Booking) => {
     Alert.alert(
       "Payment Method",
       "Choose your advance payment method",
       [
-        { text: "Cash", onPress: () => confirmPayment(id, 'cash') },
-        { text: "eSewa", onPress: () => Alert.alert("Coming Soon", "eSewa integration is next!") },
+        { text: "Cash", onPress: () => confirmPayment(booking._id, 'cash') },
+        { text: "eSewa", onPress: () => initiateEsewaPayment(booking) },
         { text: "Cancel", style: "cancel" }
       ]
     );
@@ -116,9 +116,55 @@ const BookingScreen = () => {
         method: 'PUT',
         body: JSON.stringify({ paymentMethod: method })
       });
+      Alert.alert("Success", "Booking confirmed with cash payment!");
       fetchBookings();
     } catch (error) {
       Alert.alert("Error", "Payment confirmation failed");
+    }
+  };
+
+  const initiateEsewaPayment = async (booking: Booking) => {
+    try {
+      console.log("Initiating eSewa payment for booking:", booking._id);
+      
+      const response = await apiCall('/esewa/initiate', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId: booking._id })
+      });
+
+      console.log("eSewa initiate response:", response);
+
+      if (response.success && response.paymentUrl && response.formData) {
+        // Navigate to WebView payment screen
+        router.push({
+          pathname: '/(customer)/esewa-payment',
+          params: {
+            paymentUrl: response.paymentUrl,
+            formData: JSON.stringify(response.formData),
+            bookingId: booking._id
+          }
+        });
+      } else {
+        Alert.alert("Error", "Failed to initiate eSewa payment. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("eSewa payment error:", error);
+      
+      // Provide more helpful error messages
+      let errorMessage = "Failed to initiate payment. ";
+      
+      if (error.message.includes("Network request failed") || error.message.includes("504")) {
+        errorMessage += "Cannot connect to server. Please check:\n\n" +
+                       "1. Backend is running\n" +
+                       "2. Your IP address in config/api.ts is correct\n" +
+                       "3. Both devices are on same WiFi";
+      } else if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+        errorMessage += "Authentication failed. Please login again.";
+      } else {
+        errorMessage += error.message || "Unknown error occurred.";
+      }
+      
+      Alert.alert("Connection Error", errorMessage);
     }
   };
 
@@ -204,7 +250,7 @@ const BookingScreen = () => {
         {userRole !== 'vendor' && (
           <>
             {item.status === 'Scheduled' && (
-              <TouchableOpacity style={[styles.btn, styles.btnConfirm]} onPress={() => handlePayment(item._id)}>
+              <TouchableOpacity style={[styles.btn, styles.btnConfirm]} onPress={() => handlePayment(item)}>
                 <Text style={styles.btnTextWhite}>Confirm & Pay Advance</Text>
               </TouchableOpacity>
             )}

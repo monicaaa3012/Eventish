@@ -2,7 +2,7 @@ import { AuthUtils } from '../utils/auth';
 
 // 1. Separate the Server Root from the API Root
 // Using local IP for mobile device connectivity
-const SERVER_URL = 'http://192.168.86.19:5000';
+const SERVER_URL = 'http://192.168.1.67:5000';
 const BASE_URL = `${SERVER_URL}/api`;
 
 export const API_CONFIG = {
@@ -33,11 +33,24 @@ export const API_CONFIG = {
       BASE: '/bookings',
       MY_BOOKINGS: '/bookings/my-bookings', // For (tabs)/bookings.tsx
     },
+    ESEWA: {
+      INITIATE: '/esewa/initiate',
+      SUCCESS: '/esewa/success',
+      FAILURE: '/esewa/failure',
+      STATUS: '/esewa/status', // For checking payment status
+    },
     CHAT: {
       CONVERSATIONS: '/chat/conversations',
       HISTORY: '/chat/history',
       CREATE: '/chat/conversation',
       MARK_READ: '/chat/mark-read',
+    },
+    NOTIFICATIONS: {
+      LIST: '/notifications',
+      UNREAD_COUNT: '/notifications/unread-count',
+      MARK_READ: (id: string) => `/notifications/${id}/read`,
+      MARK_ALL_READ: '/notifications/read-all',
+      DELETE: (id: string) => `/notifications/${id}`,
     }
   },
 };

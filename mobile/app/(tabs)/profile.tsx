@@ -27,6 +27,19 @@ export default function ProfileScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadUnreadCount = async () => {
+    try {
+      const response = await apiCall(API_CONFIG.ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT);
+      // Handle both { count: 0 } and { data: { count: 0 } } response formats
+      const count = response?.count ?? response?.data?.count ?? 0;
+      setUnreadCount(count);
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+      setUnreadCount(0); // Set to 0 on error to prevent UI issues
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -54,6 +67,9 @@ export default function ProfileScreen() {
       } catch (apiError) {
         if (!cachedUserData) throw apiError;
       }
+
+      // Load unread count
+      await loadUnreadCount();
     } catch (error: any) {
       if (error.message?.includes('token') || error.message?.includes('auth')) {
         await AuthUtils.clearAuth();
@@ -171,7 +187,12 @@ export default function ProfileScreen() {
             />
           )}
 
-          <MenuButton icon="notifications" label="Notifications" onPress={() => {}} />
+          <MenuButton 
+            icon="notifications" 
+            label="Notifications" 
+            badge={unreadCount}
+            onPress={() => router.push('/notifications' as any)} 
+          />
         </View>
 
         <View style={styles.menuSection}>
@@ -192,7 +213,7 @@ export default function ProfileScreen() {
 }
 
 // Ensure NO HTML tags are used in sub-components
-function MenuButton({ icon, label, onPress, iconColor = "#4F46E5" }: any) {
+function MenuButton({ icon, label, onPress, iconColor = "#4F46E5", badge }: any) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.menuLeft}>
@@ -200,6 +221,11 @@ function MenuButton({ icon, label, onPress, iconColor = "#4F46E5" }: any) {
           <Ionicons name={`${icon}-outline` as any} size={20} color={iconColor} />
         </View>
         <Text style={styles.menuLabel}>{label}</Text>
+        {badge > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
+          </View>
+        )}
       </View>
       <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
     </TouchableOpacity>
@@ -251,6 +277,20 @@ const styles = StyleSheet.create({
   menuLeft: { flexDirection: 'row', alignItems: 'center' },
   iconBox: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   menuLabel: { marginLeft: 15, fontSize: 16, fontWeight: '700', color: '#1E293B' },
+  badge: {
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 8,
+    minWidth: 20,
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',

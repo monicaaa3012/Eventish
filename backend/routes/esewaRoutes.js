@@ -1,11 +1,14 @@
 import express from "express"
 import protect from "../middleware/authMiddleware.js"
-import { initiateEsewaPayment, handleEsewaSuccess, handleEsewaFailure } from "../controllers/esewaController.js"
+import { initiateEsewaPayment, handleEsewaSuccess, handleEsewaFailure, checkPaymentStatus } from "../controllers/esewaController.js"
 
 const router = express.Router()
 
 // Initiate eSewa payment
 router.post("/initiate", protect, initiateEsewaPayment)
+
+// Check payment status (for 5-minute timeout scenario)
+router.get("/status/:bookingId", protect, checkPaymentStatus)
 
 // eSewa callback endpoints
 router.get("/success", handleEsewaSuccess)

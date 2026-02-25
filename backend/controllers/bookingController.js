@@ -1,6 +1,8 @@
 import Booking from "../models/BookingModel.js"
 import Service from "../models/ServiceModel.js"
 import Vendor from "../models/Vendor.js"
+import User from "../models/User.js"
+import { sendBookingNotificationToVendor, sendBookingStatusNotification, sendReviewNotification } from "../utils/pushNotifications.js"
 
 // Create booking
 export const createBooking = async (req, res) => {
@@ -30,6 +32,25 @@ export const createBooking = async (req, res) => {
       .populate("vendorId", "businessName")
       .populate("serviceId", "description price")
       .populate("eventId", "title date location")
+
+    // Send notification to vendor
+    const vendor = await Vendor.findById(vendorId).populate("userId")
+    if (vendor && vendor.userId) {
+      const customer = await User.findById(req.user.id)
+      const service = await Service.findById(serviceId)
+      
+      console.log("📧 Sending booking notification to vendor:", vendor.userId._id.toString())
+      
+      await sendBookingNotificationToVendor(vendor.userId._id.toString(), {
+        customerName: customer.name,
+        serviceName: service?.description || "your service",
+        bookingId: savedBooking._id.toString(),
+      })
+      
+      console.log("✅ Booking notification sent successfully")
+    } else {
+      console.log("⚠️ Vendor or vendor.userId not found, skipping notification")
+    }
 
     res.status(201).json({
       message: "Booking request sent successfully",
@@ -132,6 +153,16 @@ export const updateBookingStatus = async (req, res) => {
       .populate("vendorId", "businessName")
       .populate("serviceId", "description price")
       .populate("eventId", "title date location")
+
+    // Send notification to customer about status change
+    const vendor = await Vendor.findById(booking.vendorId)
+    if (updatedBooking.customerId) {
+      await sendBookingStatusNotification(updatedBooking.customerId._id.toString(), {
+        status,
+        vendorName: vendor?.businessName || "Vendor",
+        bookingId: id,
+      })
+    }
 
     res.json({
       message: `Booking ${status.toLowerCase()} successfully`,
@@ -302,7 +333,7 @@ export const addBookingReview = async (req, res) => {
     await booking.save()
 
     // Also add review to vendor's reviews array
-    const vendor = await Vendor.findById(booking.vendorId._id)
+    const vendor = await Vendor.findById(booking.vendorId._id).populate("userId")
     if (vendor) {
       const newReview = {
         user: userId,
@@ -320,6 +351,16 @@ export const addBookingReview = async (req, res) => {
       vendor.reviewCount = vendor.reviews.length
 
       await vendor.save()
+
+      // Send notification to vendor about new review
+      if (vendor.userId) {
+        const customer = await User.findById(userId)
+        await sendReviewNotification(vendor.userId._id.toString(), {
+          customerName: customer.name,
+          rating: Number(rating),
+          bookingId: bookingId,
+        })
+      }
     }
 
     res.status(201).json({ 

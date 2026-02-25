@@ -159,3 +159,24 @@ export const getWishlist = async (req, res) => {
     res.status(500).json({ message: "Failed to get wishlist", error: err.message })
   }
 }
+
+// Save push token
+export const savePushToken = async (req, res) => {
+  try {
+    const { pushToken } = req.body
+    
+    if (!pushToken) {
+      return res.status(400).json({ message: "Push token is required" })
+    }
+
+    const user = await User.findById(req.user.id)
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    user.pushToken = pushToken
+    await user.save()
+
+    res.json({ message: "Push token saved successfully" })
+  } catch (err) {
+    res.status(500).json({ message: "Failed to save push token", error: err.message })
+  }
+}
