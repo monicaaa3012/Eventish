@@ -21,9 +21,12 @@ BACKEND_URL=http://localhost:5000
 ```
 
 ### eSewa Configuration
+
+The project was integrated and tested using eSewa's test environment.
+
 - **Payment URL**: https://rc-epay.esewa.com.np/api/epay/main/v2/form
 - **Merchant ID**: EPAYTEST
-- **Secret Key**: 8gBm/:&EnhH.1/q
+- **Secret Key**: Configured through environment variables
 
 ## API Endpoints
 

@@ -3,3 +3,5 @@
 dist/
 npm-debug.log*
 .env
+# Uploaded files
+backend/uploads/
